@@ -1,6 +1,11 @@
 import com.auth0.jwt.JWT
 import com.auth0.jwt.JWTVerifier
 import com.auth0.jwt.algorithms.Algorithm
+import de.nielsfalk.ktor.swagger.SwaggerSupport
+import de.nielsfalk.ktor.swagger.version.shared.Contact
+import de.nielsfalk.ktor.swagger.version.shared.Information
+import de.nielsfalk.ktor.swagger.version.v2.Swagger
+import de.nielsfalk.ktor.swagger.version.v3.OpenApi
 import service.DatabaseFactory
 import service.PartidaService
 import service.UserService
@@ -18,20 +23,21 @@ import io.ktor.features.ContentNegotiation
 import io.ktor.features.DefaultHeaders
 import io.ktor.gson.gson
 import io.ktor.http.HttpMethod
+import io.ktor.locations.Locations
 import io.ktor.routing.Routing
+import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 
 
 fun Application.module() {
-
+    val userSource: UserSource = UserService()
     val issuer = "https://jwt-provider-domain/"
     val realm = "ktor sample app"
 
     install(DefaultHeaders)
     install(CallLogging)
-
-    val userSource: UserSource = UserService()
+    install(Locations)
     install(Authentication) {
         val jwtVerifier = makeJwtVerifier(issuer)
         jwt {
@@ -42,7 +48,6 @@ fun Application.module() {
             }
         }
     }
-
     install(CORS) {
         method(HttpMethod.Options)
         method(HttpMethod.Put)
@@ -56,11 +61,31 @@ fun Application.module() {
         gson {
         }
     }
-
-    install(Routing) {
+    install(SwaggerSupport) {
+        forwardRoot = true
+        val information = Information(
+            version = "0.1",
+            title = "sample api implemented in ktor",
+            description = "This is a sample which combines [ktor](https://github.com/Kotlin/ktor) with [swaggerUi](https://swagger.io/). You find the sources on [github](https://github.com/nielsfalk/ktor-swagger)",
+            contact = Contact(
+                name = "Niels Falk",
+                url = "https://nielsfalk.de"
+            )
+        )
+        swagger = Swagger().apply {
+            info = information
+        }
+        openApi = OpenApi().apply {
+            info = information
+        }
+    }
+    routing {
         partida(PartidaService())
         user(userSource)
     }
+
+
+
 
     DatabaseFactory.init()
 

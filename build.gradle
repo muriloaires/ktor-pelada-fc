@@ -35,6 +35,8 @@ dependencies {
     compile "io.ktor:ktor-server-core:$ktor_version"
     compile "io.ktor:ktor-auth:$ktor_version"
     compile "io.ktor:ktor-auth-jwt:$ktor_version"
+    compile "de.nielsfalk.ktor:ktor-swagger:0.5.0"
+    implementation "io.ktor:ktor-locations:$ktor_version"
     compile "io.ktor:ktor-gson:$ktor_version"
     compile "org.jetbrains.exposed:exposed:$exposed_version"
     compile 'com.zaxxer:HikariCP:3.3.1'
