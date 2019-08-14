@@ -6,6 +6,7 @@ import de.nielsfalk.ktor.swagger.version.shared.Group
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
 import io.ktor.locations.Location
+import io.ktor.locations.post
 import io.ktor.request.receive
 import io.ktor.response.respond
 import io.ktor.routing.Route
@@ -18,27 +19,30 @@ class RegisterUser
 
 @Group("Authentication")
 @Location("/login")
-class Login(val email: String, val password: String)
+class Login(val username: String?, val email: String?, val password: String?, val loginType: String?)
 
 
 fun Route.user(userSource: UserSource) {
 
-//    post<RegisterUser, Any>("all".responds(ok<String>(example("model", Any())))) {
-//        val newUser = call.receive<NewUser>()
-//        userSource.addUser(newUser)?.let {
-//            val token = JwtConfig.makeToken(it)
-//            call.respond(HttpStatusCode.Created, it.apply { this.token = token })
-//        } ?: run {
-//            call.respond(HttpStatusCode.BadRequest, "Email ja cadastrado")
-//        }
-//    }
-    get<Login>("Login".responds(ok<String>())) {
-        val email = call.request.queryParameters["email"]
-        val password = call.request.queryParameters["password"]
-        if (email.isNullOrEmpty() or password.isNullOrEmpty()) {
+    post<RegisterUser> {
+        val newUser = call.receive<NewUser>()
+
+        when {
+            userSource.findByEmail(newUser.email) != null ->
+                call.respond(HttpStatusCode.BadRequest, "Email ja cadastrado")
+            userSource.findByUsername(newUser.username) != null ->
+                call.respond(HttpStatusCode.BadRequest, "Username já cadastrado")
+            else ->
+                call.respond(HttpStatusCode.Created, userSource.addUser(newUser))
+        }
+
+    }
+
+    get<Login>("Login".responds(ok<String>())) { login ->
+        if (login.username.isNullOrEmpty() or login.loginType.isNullOrEmpty()) {
             call.respond(HttpStatusCode.BadRequest)
         } else {
-            val user = userSource.findUserByCredentials(email!!, password!!)
+            val user = userSource.findUserByLogin(login)
             user?.let {
                 val token = JwtConfig.makeToken(it)
                 call.respond(HttpStatusCode.OK, it.apply { this.token = token })

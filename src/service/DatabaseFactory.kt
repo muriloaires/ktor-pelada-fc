@@ -1,4 +1,5 @@
 package service
+
 import model.Partidas
 import model.Users
 import security.Hash
@@ -6,6 +7,7 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import model.LoginType
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils.create
 import org.jetbrains.exposed.sql.insert
@@ -20,21 +22,24 @@ object DatabaseFactory {
             create(Partidas)
             create(Users)
             createMock()
-            Partidas.insert {
-                it[dataRealizacao] = System.currentTimeMillis()
-            }
-            Partidas.insert {
-                it[dataRealizacao] = System.currentTimeMillis() - 10000
-            }
         }
     }
 
     private fun createMock() {
         Users.insert {
             it[name] = "Murilo"
+            it[username] = "muriloaires"
             it[email] = "murilo@gmail.com"
+            it[loginType] = LoginType.DEFAULT.value
             it[password] = Hash.sha256("123456")
         }
+        Partidas.insert {
+            it[dataRealizacao] = System.currentTimeMillis()
+        }
+        Partidas.insert {
+            it[dataRealizacao] = System.currentTimeMillis() - 10000
+        }
+
     }
 
     private fun hikari(): HikariDataSource {

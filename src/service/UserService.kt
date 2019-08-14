@@ -1,11 +1,13 @@
 package service
 
+import model.LoginType
 import model.NewUser
 import model.User
 import model.Users
 import security.Hash
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
+import web.Login
 
 class UserService : UserSource {
 
@@ -17,15 +19,24 @@ class UserService : UserSource {
         }
     }
 
-    override suspend fun findUserByCredentials(email: String, password: String): User? {
+    override suspend fun findUserByCredentials(username: String, password: String): User? {
         return DatabaseFactory.dbQuery {
             val hashPass = Hash.sha256(password)
             Users.select {
-                Users.password.eq(hashPass) and Users.email.eq(email)
+                Users.password.eq(hashPass) and Users.username.eq(username)
             }.mapNotNull {
                 toUser(it)
             }.singleOrNull()
         }
+    }
+
+    override suspend fun findUserByLogin(login: Login): User? {
+        login.loginType?.let {
+            return when (it) {
+                LoginType.DEFAULT.value -> findUserByCredentials(login.username!!, login.password!!)
+                else -> findByUsername(login.username!!)
+            }
+        } ?: run { return null }
     }
 
     override suspend fun getAllUsers(): List<User> = DatabaseFactory.dbQuery {
@@ -59,20 +70,28 @@ class UserService : UserSource {
         }.mapNotNull { toUser(it) }.singleOrNull()
     }
 
-    override suspend fun addUser(user: NewUser): User? {
-        findByEmail(user.email)?.let {
-            return null
-        } ?: run {
-            var key = 0
-            DatabaseFactory.dbQuery {
-                key = (Users.insert {
-                    it[name] = user.name
-                    it[email] = user.email
-                    it[password] = Hash.sha256(user.password)
-                } get Users.id)
-            }
-            return getUser(key)!!
+    override suspend fun findByUsername(username: String): User? = DatabaseFactory.dbQuery {
+        Users.select {
+            (Users.username eq username)
+        }.mapNotNull { toUser(it) }.singleOrNull()
+    }
+
+    override suspend fun addUser(user: NewUser): User {
+        var key = 0
+        DatabaseFactory.dbQuery {
+            key = (Users.insert {
+                it[name] = user.name
+                it[email] = user.email
+                it[password] = user.password?.let { password ->
+                    Hash.sha256(password)
+                } ?: run {
+                    Hash.sha256(System.currentTimeMillis().toString())
+                }
+                it[loginType] = user.loginType
+
+            } get Users.id)
         }
+        return getUser(key)!!
     }
 
     override suspend fun deleteUser(id: Int) = DatabaseFactory.dbQuery {
@@ -83,8 +102,9 @@ class UserService : UserSource {
         User(
             id = row[Users.id],
             name = row[Users.name],
+            username = row[Users.username],
             email = row[Users.email],
-            password = row[Users.password],
-            token = ""
+            token = "",
+            loginType = row[Users.loginType]
         )
 }
