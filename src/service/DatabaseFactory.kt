@@ -33,6 +33,15 @@ object DatabaseFactory {
             it[loginType] = LoginType.DEFAULT.value
             it[password] = Hash.sha256("123456")
         }
+
+        Users.insert {
+            it[name] = "Murilo"
+            it[username] = "muriloaires2"
+            it[email] = "murilo2@gmail.com"
+            it[loginType] = LoginType.GOOGLE.value
+            it[password] = Hash.sha256("123456")
+        }
+
         Partidas.insert {
             it[dataRealizacao] = System.currentTimeMillis()
         }

@@ -4,10 +4,11 @@ import model.LoginType
 import model.NewUser
 import model.User
 import model.Users
-import security.Hash
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
-import web.Login
+import security.Hash
+import util.isEmail
+import web.LoginRequest
 
 class UserService : UserSource {
 
@@ -19,24 +20,32 @@ class UserService : UserSource {
         }
     }
 
-    override suspend fun findUserByCredentials(username: String, password: String): User? {
+    override suspend fun findUserByCredentials(usernameOrEmail: String, password: String): User? {
         return DatabaseFactory.dbQuery {
             val hashPass = Hash.sha256(password)
             Users.select {
-                Users.password.eq(hashPass) and Users.username.eq(username)
+                if (isEmail(usernameOrEmail)) {
+                    Users.password.eq(hashPass) and Users.email.eq(usernameOrEmail)
+                } else {
+                    Users.password.eq(hashPass) and Users.username.eq(usernameOrEmail)
+                }
             }.mapNotNull {
                 toUser(it)
             }.singleOrNull()
         }
     }
 
-    override suspend fun findUserByLogin(login: Login): User? {
-        login.loginType?.let {
-            return when (it) {
-                LoginType.DEFAULT.value -> findUserByCredentials(login.username!!, login.password!!)
-                else -> findByUsername(login.username!!)
-            }
-        } ?: run { return null }
+    override suspend fun findUserBySocialNetwork(email: String, loginType: String): User? = DatabaseFactory.dbQuery {
+        Users.select {
+            Users.email.eq(email) and Users.loginType.eq(loginType)
+        }.mapNotNull { toUser(it) }.singleOrNull()
+    }
+
+    override suspend fun findUserByLoginRequest(login: LoginRequest): User? {
+        return when (login.loginType) {
+            LoginType.DEFAULT.value -> findUserByCredentials(login.usernameOrEmail, login.password!!)
+            else -> findUserBySocialNetwork(login.usernameOrEmail, login.loginType)
+        }
     }
 
     override suspend fun getAllUsers(): List<User> = DatabaseFactory.dbQuery {
@@ -82,13 +91,13 @@ class UserService : UserSource {
             key = (Users.insert {
                 it[name] = user.name
                 it[email] = user.email
+                it[username] = user.username
                 it[password] = user.password?.let { password ->
                     Hash.sha256(password)
                 } ?: run {
                     Hash.sha256(System.currentTimeMillis().toString())
                 }
                 it[loginType] = user.loginType
-
             } get Users.id)
         }
         return getUser(key)!!
@@ -104,7 +113,7 @@ class UserService : UserSource {
             name = row[Users.name],
             username = row[Users.username],
             email = row[Users.email],
-            token = "",
+            token = null,
             loginType = row[Users.loginType]
         )
 }

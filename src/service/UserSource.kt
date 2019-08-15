@@ -2,7 +2,7 @@ package service
 
 import model.NewUser
 import model.User
-import web.Login
+import web.LoginRequest
 
 interface UserSource {
 
@@ -14,9 +14,11 @@ interface UserSource {
 
     suspend fun findByEmail(email: String): User?
 
-    suspend fun findUserByCredentials(username: String, password: String): User?
+    suspend fun findUserByCredentials(usernameOrEmail: String, password: String): User?
 
-    suspend fun findUserByLogin(login: Login): User?
+    suspend fun findUserByLoginRequest(login: LoginRequest): User?
+
+    suspend fun findUserBySocialNetwork(email: String, loginType: String) : User?
 
     suspend fun updateUser(user: NewUser): User?
 
