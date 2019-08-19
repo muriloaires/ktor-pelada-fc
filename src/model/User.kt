@@ -10,6 +10,7 @@ object Users : Table() {
     val email = text("email")
     val password = text("password")
     val loginType = text("login_type")
+    val isAdvertiser = bool("is_advertiser")
 }
 
 data class User(
@@ -17,6 +18,7 @@ data class User(
     val name: String,
     val username: String,
     val email: String,
+    val isAdvertiser: Boolean,
     var token: String?,
     var loginType: String
 ) : Principal
@@ -26,6 +28,7 @@ data class NewUser(
     val name: String = "",
     val username: String,
     val email: String,
+    val isAdvertiser: Boolean,
     val password: String?,
     val loginType: String
 )

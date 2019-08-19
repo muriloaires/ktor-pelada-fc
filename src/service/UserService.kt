@@ -8,7 +8,6 @@ import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import security.Hash
 import util.isEmail
-import web.LoginRequest
 
 class UserService : UserSource {
 
@@ -41,10 +40,10 @@ class UserService : UserSource {
         }.mapNotNull { toUser(it) }.singleOrNull()
     }
 
-    override suspend fun findUserByLoginRequest(login: LoginRequest): User? {
-        return when (login.loginType) {
-            LoginType.DEFAULT.value -> findUserByCredentials(login.usernameOrEmail, login.password!!)
-            else -> findUserBySocialNetwork(login.usernameOrEmail, login.loginType)
+    override suspend fun findUserByLoginRequest(usernameOrEmail: String, loginType: String, password: String): User? {
+        return when (loginType) {
+            LoginType.DEFAULT.value -> findUserByCredentials(usernameOrEmail, password)
+            else -> findUserBySocialNetwork(usernameOrEmail, loginType)
         }
     }
 
@@ -71,6 +70,26 @@ class UserService : UserSource {
         } ?: run {
             return addUser(user)
         }
+    }
+
+    override suspend fun updateUsername(userId: Int, newUsername: String): User {
+        return getUser(
+            DatabaseFactory.dbQuery {
+                Users.update({ Users.id eq userId }) {
+                    it[username] = newUsername
+                }
+            }
+        )!!
+    }
+
+    override suspend fun updateEmail(userId: Int, newEmail: String): User {
+        return getUser(
+            DatabaseFactory.dbQuery {
+                Users.update({ Users.id eq userId }) {
+                    it[email] = newEmail
+                }
+            }
+        )!!
     }
 
     override suspend fun findByEmail(email: String): User? = DatabaseFactory.dbQuery {
@@ -113,6 +132,7 @@ class UserService : UserSource {
             name = row[Users.name],
             username = row[Users.username],
             email = row[Users.email],
+            isAdvertiser = row[Users.isAdvertiser],
             token = null,
             loginType = row[Users.loginType]
         )

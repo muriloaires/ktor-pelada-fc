@@ -30,6 +30,7 @@ object DatabaseFactory {
             it[name] = "Murilo"
             it[username] = "muriloaires"
             it[email] = "murilo@gmail.com"
+            it[isAdvertiser] = false
             it[loginType] = LoginType.DEFAULT.value
             it[password] = Hash.sha256("123456")
         }
@@ -38,6 +39,7 @@ object DatabaseFactory {
             it[name] = "Murilo"
             it[username] = "muriloaires2"
             it[email] = "murilo2@gmail.com"
+            it[isAdvertiser] = true
             it[loginType] = LoginType.GOOGLE.value
             it[password] = Hash.sha256("123456")
         }
