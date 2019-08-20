@@ -3,7 +3,6 @@ package web
 import config.JwtConfig
 import io.ktor.application.call
 import io.ktor.auth.authenticate
-import io.ktor.html.respondHtml
 import io.ktor.http.HttpStatusCode
 import io.ktor.request.receive
 import io.ktor.response.respond
@@ -11,16 +10,15 @@ import io.ktor.routing.Route
 import io.ktor.routing.get
 import io.ktor.routing.patch
 import io.ktor.routing.post
-import kotlinx.html.*
 import model.NewUser
+import service.EstablishmentDAOImpl
 import service.UserSource
 import util.user
 
 
 fun Route.user(userSource: UserSource) {
 
-
-    post {
+    post("/register") {
 
         val newUser = call.receive<NewUser>()
         when {

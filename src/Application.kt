@@ -6,13 +6,10 @@ import de.nielsfalk.ktor.swagger.version.shared.Contact
 import de.nielsfalk.ktor.swagger.version.shared.Information
 import de.nielsfalk.ktor.swagger.version.v2.Swagger
 import de.nielsfalk.ktor.swagger.version.v3.OpenApi
-import service.DatabaseFactory
-import service.PartidaService
-import service.UserService
-import service.UserSource
 import web.partida
 import web.user
 import io.ktor.application.Application
+import io.ktor.application.call
 import io.ktor.application.install
 import io.ktor.auth.Authentication
 import io.ktor.auth.jwt.JWTPrincipal
@@ -23,11 +20,15 @@ import io.ktor.features.ContentNegotiation
 import io.ktor.features.DefaultHeaders
 import io.ktor.gson.gson
 import io.ktor.http.HttpMethod
+import io.ktor.http.HttpStatusCode
 import io.ktor.locations.Locations
+import io.ktor.response.respond
 import io.ktor.routing.Routing
+import io.ktor.routing.get
 import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
+import service.*
 
 
 fun Application.module() {
@@ -80,6 +81,10 @@ fun Application.module() {
         }
     }
     routing {
+        get("/teste"){
+            val query = EstablishmentDAOImpl().getAll()
+            call.respond(HttpStatusCode.OK)
+        }
         partida(PartidaService())
         user(userSource)
     }

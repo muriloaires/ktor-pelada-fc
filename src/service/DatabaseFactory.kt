@@ -1,13 +1,11 @@
 package service
 
-import model.Partidas
-import model.Users
 import security.Hash
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import model.LoginType
+import model.*
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils.create
 import org.jetbrains.exposed.sql.insert
@@ -19,8 +17,7 @@ object DatabaseFactory {
         // Database.connect("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1", driver = "org.h2.Driver")
         Database.connect(hikari())
         transaction {
-            create(Partidas)
-            create(Users)
+            create(Partidas, Users, Establishments, EstablishmentAddresses)
             createMock()
         }
     }
@@ -42,6 +39,22 @@ object DatabaseFactory {
             it[isAdvertiser] = true
             it[loginType] = LoginType.GOOGLE.value
             it[password] = Hash.sha256("123456")
+        }
+
+        Establishments.insert {
+            it[id] = 1
+            it[name] = "Estabelecimento 1"
+        }
+
+        EstablishmentAddresses.insert {
+            it[establishmentId] = 1
+            it[zipCode] = "234"
+            it[streetAddress] = "iojeia"
+            it[city] = "Cidade"
+            it[state] = "Estado"
+            it[country] = "País"
+            it[latitude] = 123456879L
+            it[longitude] = 564321654L
         }
 
         Partidas.insert {
