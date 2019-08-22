@@ -1,17 +1,17 @@
 package model
 
+import org.jetbrains.exposed.dao.EntityID
+import org.jetbrains.exposed.dao.IntEntity
+import org.jetbrains.exposed.dao.IntIdTable
 import org.jetbrains.exposed.sql.Table
 
-object Establishments : Table() {
-    val id = integer("id").primaryKey().autoIncrement()
+object Establishments : IntIdTable() {
     val name = text("name")
 }
 
-data class Establishment(
-    val id: Int,
-    val name: String,
-    val establishmentAddress: EstablishmentAddress
-)
+class Establishment(id: EntityID<Int>) : IntEntity(id) {
+    var name by Establishments.name
+}
 
 object EstablishmentAddresses : Table() {
     val zipCode = text("zip_code")
@@ -23,7 +23,7 @@ object EstablishmentAddresses : Table() {
     val longitude = long("longitude")
     val establishmentId = integer("establishment_id")
         .uniqueIndex()
-        .references( Establishments.id)
+        .references(Establishments.id)
 }
 
 data class EstablishmentAddress(
@@ -34,6 +34,6 @@ data class EstablishmentAddress(
     val state: String,
     val country: String,
     val latitude: Long,
-    val lonngitude: Long
+    val longitude: Long
 )
 
