@@ -1,4 +1,4 @@
-package model
+package dao.model
 import org.jetbrains.exposed.sql.Table
 
 

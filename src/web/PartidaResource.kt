@@ -1,6 +1,6 @@
 package web
 
-import model.NewPartida
+import dao.model.NewPartida
 import service.PartidaService
 import util.user
 import io.ktor.application.call

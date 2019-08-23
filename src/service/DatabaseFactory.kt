@@ -5,10 +5,9 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import model.*
+import dao.model.*
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils.create
-import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.transactions.transaction
 
 object DatabaseFactory {
@@ -24,7 +23,7 @@ object DatabaseFactory {
 
     private fun createMock() {
 
-        User.new {
+        UserRow.new {
             name = "Murilo"
             username = "muriloaires"
             email = "murilo1@gmail.com"
@@ -33,7 +32,7 @@ object DatabaseFactory {
             password = Hash.sha256("123456")
         }
 
-        User.new {
+        UserRow.new {
             name = "Murilo"
             username = "muriloaires2"
             email = "murilo2@gmail.com"
@@ -42,11 +41,11 @@ object DatabaseFactory {
             password = Hash.sha256("123456")
         }
 
-        val establishmentData = Establishment.new {
+        val establishmentData = EstablishmentRow.new {
             name = "Estabelecimento 1"
         }
 
-        EstablishmentAddress.new {
+        EstablishmentAddressRow.new {
             establishment = establishmentData
             zipCode = "123"
             streetAddress = "Street Address"

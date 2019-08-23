@@ -1,8 +1,8 @@
 package service
 
-import model.NewPartida
-import model.Partida
-import model.Partidas
+import dao.model.NewPartida
+import dao.model.Partida
+import dao.model.Partidas
 import service.DatabaseFactory.dbQuery
 import org.jetbrains.exposed.sql.*
 

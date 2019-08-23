@@ -1,6 +1,6 @@
 package service
 
-import model.NewUser
+import dao.model.NewUser
 import model.User
 
 interface UserSource {
@@ -22,8 +22,6 @@ interface UserSource {
     suspend fun updateUsername(userId: Int, newUsername: String): User?
 
     suspend fun updateEmail(userId: Int, newEmail: String): User?
-
-    suspend fun updateUser(user: NewUser): User?
 
     suspend fun addUser(user: NewUser): User
 
