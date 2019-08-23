@@ -21,10 +21,10 @@ class User(id: EntityID<Int>) : IntEntity(id), Principal {
     var name by Users.name
     var username by Users.username
     var email by Users.email
-    var passwor by Users.password
+    var password by Users.password
     var loginType by Users.loginType
     var isAdvertiser by Users.isAdvertiser
-
+    var token: String? = null
 }
 
 

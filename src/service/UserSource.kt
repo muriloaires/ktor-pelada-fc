@@ -19,9 +19,9 @@ interface UserSource {
 
     suspend fun findUserBySocialNetwork(email: String, loginType: String): User?
 
-    suspend fun updateUsername(userId: Int, newUsername: String): User
+    suspend fun updateUsername(userId: Int, newUsername: String): User?
 
-    suspend fun updateEmail(userId: Int, newEmail: String): User
+    suspend fun updateEmail(userId: Int, newEmail: String): User?
 
     suspend fun updateUser(user: NewUser): User?
 

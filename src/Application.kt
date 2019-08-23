@@ -28,6 +28,8 @@ import io.ktor.routing.get
 import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
+import model.Establishment
+import org.jetbrains.exposed.sql.transactions.transaction
 import service.*
 
 
@@ -81,16 +83,15 @@ fun Application.module() {
         }
     }
     routing {
-        get("/teste"){
-            val query = EstablishmentDAOImpl().getAll()
-            call.respond(HttpStatusCode.OK)
+        get("/teste") {
+            val list = transaction {
+                Establishment.all().toList()
+            }
+            call.respond(list)
         }
         partida(PartidaService())
         user(userSource)
     }
-
-
-
 
     DatabaseFactory.init()
 

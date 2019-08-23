@@ -11,7 +11,6 @@ import io.ktor.routing.get
 import io.ktor.routing.patch
 import io.ktor.routing.post
 import model.NewUser
-import service.EstablishmentDAOImpl
 import service.UserSource
 import util.user
 
@@ -63,7 +62,7 @@ fun Route.user(userSource: UserSource) {
                 if (newUser.username == it.username || userSource.findByUsername(newUser.username) != null) {
                     call.respond(HttpStatusCode.BadRequest, "Username já cadastrado")
                 } else {
-                    call.respond(HttpStatusCode.OK, userSource.updateUsername(it.id, newUser.username))
+                    call.respond(HttpStatusCode.OK, userSource.updateUsername(it.id.value, newUser.username)!!)
                 }
             }
         }
@@ -77,7 +76,7 @@ fun Route.user(userSource: UserSource) {
                 if (newUser.email == it.email || userSource.findByEmail(newUser.email) != null) {
                     call.respond(HttpStatusCode.BadRequest, "Email já cadastrado")
                 } else {
-                    call.respond(HttpStatusCode.OK, userSource.updateEmail(it.id, newUser.email))
+                    call.respond(HttpStatusCode.OK, userSource.updateEmail(it.id.value, newUser.email)!!)
                 }
             }
         }

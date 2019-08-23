@@ -23,45 +23,38 @@ object DatabaseFactory {
     }
 
     private fun createMock() {
-        Users.insert {
-            it[name] = "Murilo"
-            it[username] = "muriloaires"
-            it[email] = "murilo@gmail.com"
-            it[isAdvertiser] = false
-            it[loginType] = LoginType.DEFAULT.value
-            it[password] = Hash.sha256("123456")
+
+        User.new {
+            name = "Murilo"
+            username = "muriloaires"
+            email = "murilo1@gmail.com"
+            isAdvertiser = false
+            loginType = LoginType.DEFAULT.value
+            password = Hash.sha256("123456")
         }
 
-        Users.insert {
-            it[name] = "Murilo"
-            it[username] = "muriloaires2"
-            it[email] = "murilo2@gmail.com"
-            it[isAdvertiser] = true
-            it[loginType] = LoginType.GOOGLE.value
-            it[password] = Hash.sha256("123456")
+        User.new {
+            name = "Murilo"
+            username = "muriloaires2"
+            email = "murilo2@gmail.com"
+            isAdvertiser = true
+            loginType = LoginType.GOOGLE.value
+            password = Hash.sha256("123456")
         }
 
-        Establishments.insert {
-            it[id] = 1
-            it[name] = "Estabelecimento 1"
+        val establishmentData = Establishment.new {
+            name = "Estabelecimento 1"
         }
 
-        EstablishmentAddresses.insert {
-            it[establishmentId] = 1
-            it[zipCode] = "234"
-            it[streetAddress] = "iojeia"
-            it[city] = "Cidade"
-            it[state] = "Estado"
-            it[country] = "País"
-            it[latitude] = 123456879L
-            it[longitude] = 564321654L
-        }
-
-        Partidas.insert {
-            it[dataRealizacao] = System.currentTimeMillis()
-        }
-        Partidas.insert {
-            it[dataRealizacao] = System.currentTimeMillis() - 10000
+        EstablishmentAddress.new {
+            establishment = establishmentData
+            zipCode = "123"
+            streetAddress = "Street Address"
+            city = "City"
+            state = "State"
+            country = "Country"
+            latitude = 239043490L
+            longitude = 9392932L
         }
 
     }
@@ -77,9 +70,7 @@ object DatabaseFactory {
         return HikariDataSource(config)
     }
 
-    suspend fun <T> dbQuery(
-        block: () -> T
-    ): T =
+    suspend fun <T> dbQuery(block: () -> T): T =
         withContext(Dispatchers.IO) {
             transaction { block() }
         }
