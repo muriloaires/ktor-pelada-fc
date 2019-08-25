@@ -1,13 +1,13 @@
 package dao.model
 
+import dao.base.BaseIntIdTable
 import model.User
 import org.jetbrains.exposed.dao.EntityID
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
-import org.jetbrains.exposed.dao.IntIdTable
 import org.jetbrains.exposed.sql.transactions.transaction
 
-object Users : IntIdTable() {
+object Users : BaseIntIdTable() {
     val name = text("name")
     val username = text("username")
     val email = text("email")
@@ -19,6 +19,8 @@ object Users : IntIdTable() {
 class UserRow(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<UserRow>(Users)
 
+    var createdAt by Users.createdAt
+    var updatedAt by Users.updatedAt
     var name by Users.name
     var username by Users.username
     var email by Users.email
@@ -44,6 +46,8 @@ enum class LoginType(val value: String) {
 }
 
 fun UserRow.toUser() = User(
+    this.createdAt.toDate(),
+    this.updatedAt.toDate(),
     this.id.value,
     this.name,
     this.username,
@@ -51,5 +55,6 @@ fun UserRow.toUser() = User(
     this.loginType,
     this.isAdvertiser,
     transaction {
-        this@toUser.establishments.map { it.toEstablishment() } }
-    )
+        this@toUser.establishments.map { it.toEstablishment() }
+    }
+)

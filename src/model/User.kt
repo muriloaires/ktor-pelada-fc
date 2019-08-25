@@ -1,14 +1,18 @@
 package model
 
 import io.ktor.auth.Principal
+import model.base.BaseModel
+import java.util.*
 
 data class User(
-    val id : Int,
+    override val createdAt: Date,
+    override val updatedAt: Date,
+    val id: Int,
     val name: String,
     val username: String,
     val email: String,
     val loginType: String,
     val isAdvertiser: Boolean,
-    val establishments : List<Establishment>,
+    val establishments: List<Establishment>,
     var token: String? = null
-) : Principal
+) : BaseModel(), Principal

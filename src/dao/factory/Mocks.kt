@@ -1,8 +1,10 @@
 package dao.factory
 
 import dao.model.*
+import org.jetbrains.exposed.sql.Date
 import org.jetbrains.exposed.sql.SizedCollection
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.joda.time.DateTime
 import security.Hash
 
 object Mocks {
@@ -48,6 +50,8 @@ object Mocks {
     private fun mockUser(): UserRow {
         return transaction {
             UserRow.new {
+                createdAt = DateTime()
+                updatedAt = DateTime()
                 name = "Murilo"
                 username = "muriloaires2"
                 email = "murilo2@gmail.com"

@@ -6,13 +6,7 @@ import dao.UserDAO
 import dao.factory.DatabaseFactory
 import dao.services.EstablishmentServiceDAO
 import dao.services.UserServiceDAO
-import de.nielsfalk.ktor.swagger.SwaggerSupport
-import de.nielsfalk.ktor.swagger.version.shared.Contact
-import de.nielsfalk.ktor.swagger.version.shared.Information
-import de.nielsfalk.ktor.swagger.version.v2.Swagger
-import de.nielsfalk.ktor.swagger.version.v3.OpenApi
 import io.ktor.application.Application
-import io.ktor.application.call
 import io.ktor.application.install
 import io.ktor.auth.Authentication
 import io.ktor.auth.jwt.jwt
@@ -23,19 +17,16 @@ import io.ktor.features.DefaultHeaders
 import io.ktor.gson.gson
 import io.ktor.http.HttpMethod
 import io.ktor.locations.Locations
-import io.ktor.response.respond
-import io.ktor.routing.get
 import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
-import org.jetbrains.exposed.sql.transactions.transaction
 import web.establishment
 import web.user
 
 
 fun Application.module() {
     val userSource: UserDAO = UserServiceDAO()
-    val establishmentDAO : EstablishmentDAO = EstablishmentServiceDAO()
+    val establishmentDAO: EstablishmentDAO = EstablishmentServiceDAO()
     val issuer = "https://jwt-provider-domain/"
     val realm = "ktor sample app"
 
@@ -63,33 +54,10 @@ fun Application.module() {
 
     install(ContentNegotiation) {
         gson {
-        }
-    }
-    install(SwaggerSupport) {
-        forwardRoot = true
-        val information = Information(
-            version = "0.1",
-            title = "sample api implemented in ktor",
-            description = "This is a sample which combines [ktor](https://github.com/Kotlin/ktor) with [swaggerUi](https://swagger.io/). You find the sources on [github](https://github.com/nielsfalk/ktor-swagger)",
-            contact = Contact(
-                name = "Niels Falk",
-                url = "https://nielsfalk.de"
-            )
-        )
-        swagger = Swagger().apply {
-            info = information
-        }
-        openApi = OpenApi().apply {
-            info = information
+            setDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
         }
     }
     routing {
-        get("/teste") {
-            val list = transaction {
-
-            }
-            call.respond(list)
-        }
         user(userSource)
         establishment(establishmentDAO)
     }
