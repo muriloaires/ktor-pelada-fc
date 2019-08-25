@@ -1,13 +1,15 @@
-package service
+package dao.services
 
+import dao.UserDAO
 import dao.model.*
 import model.User
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.transactions.transaction
 import security.Hash
+import dao.factory.DatabaseFactory
 import util.isEmail
 
-class UserService : UserSource {
+class UserServiceDAO : UserDAO {
 
     override fun findUserById(id: Int): User? {
         return transaction { UserRow.findById(id)?.toUser() }

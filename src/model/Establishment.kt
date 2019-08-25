@@ -1,12 +1,17 @@
 package model
 
 data class Establishment(
-    val name : String,
-    val addresses : List<EstablishmentAdress>
+    val name: String,
+    val address: EstablishmentAdress,
+    val sports : List<Sport>
 )
 
 data class EstablishmentAdress(
-    val establishment: Establishment,
     val zipCode: String,
-    val
+    val streetAddress: String,
+    val city: String,
+    val state: String,
+    val country: String,
+    val latitude: Long,
+    val longitude: Long
 )

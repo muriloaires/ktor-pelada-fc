@@ -9,5 +9,6 @@ data class User(
     val email: String,
     val loginType: String,
     val isAdvertiser: Boolean,
+    val establishments : List<Establishment>,
     var token: String? = null
 ) : Principal

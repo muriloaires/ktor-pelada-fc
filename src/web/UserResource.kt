@@ -11,11 +11,11 @@ import io.ktor.routing.get
 import io.ktor.routing.patch
 import io.ktor.routing.post
 import dao.model.NewUser
-import service.UserSource
+import dao.UserDAO
 import util.user
 
 
-fun Route.user(userSource: UserSource) {
+fun Route.user(userSource: UserDAO) {
 
     post("/register") {
 
@@ -80,6 +80,8 @@ fun Route.user(userSource: UserSource) {
                 }
             }
         }
+
+//        get("/users/establishments")
     }
 
 

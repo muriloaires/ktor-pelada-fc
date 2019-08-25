@@ -1,13 +1,16 @@
 import com.auth0.jwt.JWT
 import com.auth0.jwt.JWTVerifier
 import com.auth0.jwt.algorithms.Algorithm
+import dao.EstablishmentDAO
+import dao.UserDAO
+import dao.factory.DatabaseFactory
+import dao.services.EstablishmentServiceDAO
+import dao.services.UserServiceDAO
 import de.nielsfalk.ktor.swagger.SwaggerSupport
 import de.nielsfalk.ktor.swagger.version.shared.Contact
 import de.nielsfalk.ktor.swagger.version.shared.Information
 import de.nielsfalk.ktor.swagger.version.v2.Swagger
 import de.nielsfalk.ktor.swagger.version.v3.OpenApi
-import web.partida
-import web.user
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
@@ -25,13 +28,14 @@ import io.ktor.routing.get
 import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
-import dao.model.Establishment
 import org.jetbrains.exposed.sql.transactions.transaction
-import service.*
+import web.establishment
+import web.user
 
 
 fun Application.module() {
-    val userSource: UserSource = UserService()
+    val userSource: UserDAO = UserServiceDAO()
+    val establishmentDAO : EstablishmentDAO = EstablishmentServiceDAO()
     val issuer = "https://jwt-provider-domain/"
     val realm = "ktor sample app"
 
@@ -82,12 +86,12 @@ fun Application.module() {
     routing {
         get("/teste") {
             val list = transaction {
-                Establishment.all().toList()
+
             }
             call.respond(list)
         }
-        partida(PartidaService())
         user(userSource)
+        establishment(establishmentDAO)
     }
 
     DatabaseFactory.init()
