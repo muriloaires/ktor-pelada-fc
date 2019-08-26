@@ -53,8 +53,5 @@ fun UserRow.toUser() = User(
     this.username,
     this.email,
     this.loginType,
-    this.isAdvertiser,
-    transaction {
-        this@toUser.establishments.map { it.toEstablishment() }
-    }
+    this.isAdvertiser
 )

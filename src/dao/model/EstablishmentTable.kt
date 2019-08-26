@@ -1,27 +1,32 @@
 package dao.model
 
+import dao.base.BaseIntIdTable
 import model.Establishment
 import model.EstablishmentAdress
 import org.jetbrains.exposed.dao.*
 import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.transactions.transaction
 
-object Establishments : IntIdTable() {
+object Establishments : BaseIntIdTable() {
     val name = text("name")
+    val description = text("description")
     val user = reference("user", Users)
-    val address = reference("adress", EstablishmentAddresses)
 }
 
 class EstablishmentRow(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<EstablishmentRow>(Establishments)
 
+    var createdAt by Establishments.createdAt
+    var updatedAt by Establishments.updatedAt
+    var description by Establishments.description
     var name by Establishments.name
     var user by UserRow referencedOn Establishments.user
-    var address by EstablishmentAddressRow referencedOn Establishments.address
+    val addresses by EstablishmentAddressRow referrersOn EstablishmentAddresses.establishment
     var sports by SportsRow via EstablishmentSports
 }
 
 object EstablishmentAddresses : IntIdTable() {
-
+    val establishment = reference("establishment", Establishments)
     val zipCode = text("zip_code")
     val streetAddress = text("street_address")
     val city = text("city")
@@ -34,7 +39,7 @@ object EstablishmentAddresses : IntIdTable() {
 class EstablishmentAddressRow(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<EstablishmentAddressRow>(EstablishmentAddresses)
 
-    val establishments by EstablishmentRow referrersOn Establishments.address
+    var establishment by EstablishmentRow referencedOn EstablishmentAddresses.establishment
     var zipCode by EstablishmentAddresses.zipCode
     var streetAddress by EstablishmentAddresses.streetAddress
     var city by EstablishmentAddresses.city
@@ -51,7 +56,25 @@ object EstablishmentSports : Table() {
 }
 
 fun EstablishmentRow.toEstablishment() =
-    Establishment(this.name, this.address.toEstablishmentAddress(), this.sports.map { it.toSport() })
+    Establishment(
+        this.createdAt.toDate(),
+        this.updatedAt.toDate(),
+        id.value,
+        this.name,
+        this.description,
+        transaction {
+            this@toEstablishment.addresses.toList().map { it.toEstablishmentAddress() }.let {
+                if (it.isEmpty()) {
+                    null
+                } else {
+                    it[0]
+                }
+            }
+        },
+        transaction {
+            this@toEstablishment.sports.map { it.toSport() }
+        }
+    )
 
 fun EstablishmentAddressRow.toEstablishmentAddress() =
     EstablishmentAdress(

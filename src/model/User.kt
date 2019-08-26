@@ -13,6 +13,6 @@ data class User(
     val email: String,
     val loginType: String,
     val isAdvertiser: Boolean,
-    val establishments: List<Establishment>,
+    val establishments: List<Establishment>? = null,
     var token: String? = null
 ) : BaseModel(), Principal

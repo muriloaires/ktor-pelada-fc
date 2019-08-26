@@ -4,6 +4,7 @@ import com.auth0.jwt.algorithms.Algorithm
 import dao.EstablishmentDAO
 import dao.UserDAO
 import dao.factory.DatabaseFactory
+import dao.model.toUser
 import dao.services.EstablishmentServiceDAO
 import dao.services.UserServiceDAO
 import io.ktor.application.Application
@@ -39,7 +40,9 @@ fun Application.module() {
             verifier(jwtVerifier)
             this.realm = realm
             validate {
-                it.payload.getClaim("id").asInt()?.let(userSource::findUserById)
+                it.payload.getClaim("id").asInt()?.let{id ->
+                    userSource.findById(id)?.toUser()
+                }
             }
         }
     }

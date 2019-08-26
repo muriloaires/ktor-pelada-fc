@@ -12,6 +12,7 @@ import io.ktor.routing.patch
 import io.ktor.routing.post
 import dao.model.NewUser
 import dao.UserDAO
+import dao.model.toUser
 import util.user
 
 
@@ -28,7 +29,7 @@ fun Route.user(userSource: UserDAO) {
             else ->
                 call.respond(
                     HttpStatusCode.Created,
-                    userSource.addUser(newUser).apply { this.token = JwtConfig.makeToken(this) })
+                    userSource.addUser(newUser).toUser().apply { this.token = JwtConfig.makeToken(this) })
         }
 
     }
@@ -42,8 +43,8 @@ fun Route.user(userSource: UserDAO) {
         } else {
             val user = userSource.findUserByLoginRequest(usernameOrEmail, loginType, password!!)
             user?.let {
-                val token = JwtConfig.makeToken(it)
-                call.respond(HttpStatusCode.OK, it.apply { this.token = token })
+                val token = JwtConfig.makeToken(it.toUser())
+                call.respond(HttpStatusCode.OK, it.toUser().apply { this.token = token })
             } ?: run {
                 call.respond(HttpStatusCode.NotFound, "Wrong user or password")
             }

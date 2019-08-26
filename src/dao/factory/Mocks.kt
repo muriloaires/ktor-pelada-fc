@@ -11,7 +11,8 @@ object Mocks {
 
     fun mock() {
         val sports = mockSports()
-        val establishment = mockEstablishment(mockUser(), mockAddress())
+        val establishment = mockEstablishment(mockUser())
+//        mockAddress(establishment)
         mockEstablishmentSports(establishment, sports)
     }
 
@@ -63,14 +64,15 @@ object Mocks {
     }
 
     private fun mockEstablishment(
-        userRow: UserRow,
-        establishmentAddressRow: EstablishmentAddressRow
+        userRow: UserRow
     ): EstablishmentRow {
         return transaction {
             EstablishmentRow.new {
+                createdAt = DateTime.now()
+                updatedAt = DateTime.now()
                 name = "Estabelecimento 1"
+                description = "description"
                 user = userRow
-                address = establishmentAddressRow
             }
         }
     }
@@ -81,9 +83,11 @@ object Mocks {
         }
     }
 
-    private fun mockAddress(): EstablishmentAddressRow {
+    private fun mockAddress(establishmentRow: EstablishmentRow): EstablishmentAddressRow {
         return transaction {
-            EstablishmentAddressRow.new {
+            EstablishmentAddressRow.new(0) {
+
+                establishment = establishmentRow
                 zipCode = "123"
                 streetAddress = "Street Address"
                 city = "City"

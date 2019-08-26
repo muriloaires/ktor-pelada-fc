@@ -7,15 +7,22 @@ import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.transactions.transaction
 import security.Hash
 import dao.factory.DatabaseFactory
+import org.joda.time.DateTime
 import util.isEmail
 
 class UserServiceDAO : UserDAO {
 
-    override fun findUserById(id: Int): User? {
-        return transaction { UserRow.findById(id)?.toUser() }
+    override fun findUserById(id: Int): UserRow? {
+        return transaction { UserRow.findById(id) }
     }
 
-    override suspend fun findUserByCredentials(usernameOrEmail: String, password: String): User? {
+    override suspend fun findById(id: Int): UserRow? {
+        return DatabaseFactory.dbQuery {
+            UserRow.findById(id)
+        }
+    }
+
+    override suspend fun findUserByCredentials(usernameOrEmail: String, password: String): UserRow? {
         return DatabaseFactory.dbQuery {
             val hashPass = Hash.sha256(password)
             UserRow.find {
@@ -25,65 +32,69 @@ class UserServiceDAO : UserDAO {
                     Users.password.eq(hashPass) and Users.username.eq(usernameOrEmail)
                 }
             }.singleOrNull()
-        }?.toUser()
+        }
     }
 
-    override suspend fun findUserBySocialNetwork(email: String, loginType: String): User? {
+    override suspend fun findUserBySocialNetwork(email: String, loginType: String): UserRow? {
         return DatabaseFactory.dbQuery {
             UserRow.find {
                 Users.email.eq(email) and Users.loginType.eq(loginType)
             }.singleOrNull()
-        }?.toUser()
+        }
     }
 
     override suspend fun findUserByLoginRequest(
         usernameOrEmail: String,
         loginType: String,
         password: String
-    ): User? {
+    ): UserRow? {
         return when (loginType) {
             LoginType.DEFAULT.value -> findUserByCredentials(usernameOrEmail, password)
             else -> findUserBySocialNetwork(usernameOrEmail, loginType)
         }
     }
 
-    override suspend fun getAllUsers(): List<User> {
-        return DatabaseFactory.dbQuery { UserRow.all().map { it.toUser() }.toList() }
+    override suspend fun getAllUsers(): List<UserRow> {
+        return DatabaseFactory.dbQuery { UserRow.all().toList() }
     }
 
-    override suspend fun getUser(id: Int): User? {
+    override suspend fun getUser(id: Int): UserRow? {
         return DatabaseFactory.dbQuery {
             UserRow.findById(id)
-        }?.toUser()
+        }
     }
 
 
-    override suspend fun updateUsername(userId: Int, newUsername: String): User? {
+    override suspend fun updateUsername(userId: Int, newUsername: String): UserRow? {
         return DatabaseFactory.dbQuery {
             UserRow.findById(userId)?.apply {
                 username = newUsername
+                updatedAt = DateTime.now()
             }
-        }?.toUser()
+        }
     }
 
-    override suspend fun updateEmail(userId: Int, newEmail: String): User? {
+    override suspend fun updateEmail(userId: Int, newEmail: String): UserRow? {
         return DatabaseFactory.dbQuery {
             UserRow.findById(userId)?.apply {
                 email = newEmail
+                updatedAt = DateTime.now()
             }
-        }?.toUser()
+        }
     }
 
-    override suspend fun findByEmail(email: String): User? {
-        return UserRow.find { Users.email eq email }.singleOrNull()?.toUser()
+    override suspend fun findByEmail(email: String): UserRow? {
+        return UserRow.find { Users.email eq email }.singleOrNull()
     }
 
-    override suspend fun findByUsername(username: String): User? {
-        return UserRow.find { Users.username eq username }.singleOrNull()?.toUser()
+    override suspend fun findByUsername(username: String): UserRow? {
+        return UserRow.find { Users.username eq username }.singleOrNull()
     }
 
-    override suspend fun addUser(user: NewUser): User {
+    override suspend fun addUser(user: NewUser): UserRow {
         return UserRow.new {
+            createdAt = DateTime.now()
+            updatedAt = DateTime.now()
             name = user.name
             email = user.email
             username = user.username
@@ -93,7 +104,7 @@ class UserServiceDAO : UserDAO {
                 Hash.sha256(System.currentTimeMillis().toString())
             }
             loginType = user.loginType
-        }.toUser()
+        }
     }
 
     override suspend fun deleteUser(id: Int): Boolean {
@@ -104,6 +115,5 @@ class UserServiceDAO : UserDAO {
             return false
         }
     }
-
 
 }
