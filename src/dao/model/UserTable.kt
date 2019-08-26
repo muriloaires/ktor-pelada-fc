@@ -30,17 +30,6 @@ class UserRow(id: EntityID<Int>) : IntEntity(id) {
     val establishments by EstablishmentRow referrersOn Establishments.user
 }
 
-
-data class NewUser(
-    val id: Int?,
-    val name: String = "",
-    val username: String,
-    val email: String,
-    val isAdvertiser: Boolean,
-    val password: String?,
-    val loginType: String
-)
-
 enum class LoginType(val value: String) {
     GOOGLE("G"), DEFAULT("D"), FACEBOOK("F")
 }

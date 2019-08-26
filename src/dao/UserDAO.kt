@@ -1,8 +1,7 @@
 package dao
 
-import dao.model.NewUser
 import dao.model.UserRow
-import model.User
+import web.model.incoming.NewUser
 
 interface UserDAO {
 
