@@ -1,11 +1,10 @@
-package dao.model
+package dao.tables
 
 import dao.base.BaseIntIdTable
 import model.User
 import org.jetbrains.exposed.dao.EntityID
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
-import org.jetbrains.exposed.sql.transactions.transaction
 
 object Users : BaseIntIdTable() {
     val name = text("name")

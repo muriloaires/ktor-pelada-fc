@@ -3,10 +3,8 @@ package dao.services
 import dao.EstablishmentDAO
 import dao.UserDAO
 import dao.factory.DatabaseFactory
-import dao.model.*
-import model.Establishment
+import dao.tables.*
 import org.jetbrains.exposed.sql.SizedCollection
-import org.jetbrains.exposed.sql.SizedIterable
 import org.jetbrains.exposed.sql.deleteWhere
 import org.joda.time.DateTime
 import web.model.incoming.EditEstablishmentAddress
@@ -58,8 +56,8 @@ class EstablishmentServiceDAO : EstablishmentDAO {
         return DatabaseFactory.dbQuery {
             EstablishmentRow.findById(establishmentId)?.let {
                 it.addresses.map { addressRow -> addressRow.delete() }
-                EstablishmentSports.deleteWhere {
-                    EstablishmentSports.establishment eq establishmentId
+                EstablishmentSportsRelation.deleteWhere {
+                    EstablishmentSportsRelation.establishment eq establishmentId
                 }
                 it.delete()
                 true

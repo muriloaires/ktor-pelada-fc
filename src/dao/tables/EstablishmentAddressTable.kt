@@ -1,6 +1,6 @@
-package dao.model
+package dao.tables
 
-import model.EstablishmentAdress
+import model.EstablishmentAddress
 import org.jetbrains.exposed.dao.EntityID
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
@@ -32,7 +32,7 @@ class EstablishmentAddressRow(id: EntityID<Int>) : IntEntity(id) {
 }
 
 fun EstablishmentAddressRow.toEstablishmentAddress() =
-    EstablishmentAdress(
+    EstablishmentAddress(
         this.zipCode,
         this.streetAddress,
         this.city,

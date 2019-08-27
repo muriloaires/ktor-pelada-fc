@@ -1,15 +1,15 @@
-package dao.model
+package dao.tables
 
 import dao.base.BaseIntIdTable
 import model.Establishment
-import model.EstablishmentAdress
 import org.jetbrains.exposed.dao.*
-import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.transactions.transaction
 
 object Establishments : BaseIntIdTable() {
     val name = text("name")
     val description = text("description")
+    val profilePhotoUrl = text("profile_photo_url").nullable()
+    val coverPhotoUrl = text("cover_photo_url").nullable()
     val user = reference("user", Users)
 }
 
@@ -18,11 +18,14 @@ class EstablishmentRow(id: EntityID<Int>) : IntEntity(id) {
 
     var createdAt by Establishments.createdAt
     var updatedAt by Establishments.updatedAt
-    var description by Establishments.description
     var name by Establishments.name
+    var description by Establishments.description
+    var profilePhotoUrl by Establishments.profilePhotoUrl
+    var coverPhotoUrl by Establishments.coverPhotoUrl
     var user by UserRow referencedOn Establishments.user
     val addresses by EstablishmentAddressRow referrersOn EstablishmentAddresses.establishment
-    var sports by SportRow via EstablishmentSports
+    val sportCourts by SportCourtRow referrersOn SportCourts.establishment
+    var sports by SportRow via EstablishmentSportsRelation
 }
 
 fun EstablishmentRow.toEstablishment() =
@@ -32,6 +35,8 @@ fun EstablishmentRow.toEstablishment() =
         id.value,
         this.name,
         this.description,
+        this.profilePhotoUrl,
+        this.coverPhotoUrl,
         transaction {
             this@toEstablishment.addresses.toList().map { it.toEstablishmentAddress() }.let {
                 if (it.isEmpty()) {

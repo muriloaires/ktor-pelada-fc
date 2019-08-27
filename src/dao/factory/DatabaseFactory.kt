@@ -2,7 +2,7 @@ package dao.factory
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import dao.model.*
+import dao.tables.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jetbrains.exposed.sql.Database
@@ -15,7 +15,15 @@ object DatabaseFactory {
         // Database.connect("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1", driver = "org.h2.Driver")
         Database.connect(hikari())
         transaction {
-            create(Users, Establishments, EstablishmentAddresses, EstablishmentSports, Sports)
+            create(
+                Users,
+                Sports,
+                Establishments,
+                EstablishmentAddresses,
+                EstablishmentSportsRelation,
+                SportCourts,
+                CourtSportsRelation
+            )
         }
         Mocks.mock()
     }

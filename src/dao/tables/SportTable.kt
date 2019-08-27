@@ -1,4 +1,4 @@
-package dao.model
+package dao.tables
 
 import model.Sport
 import org.jetbrains.exposed.dao.EntityID

@@ -2,9 +2,9 @@ package dao.services
 
 import dao.UserDAO
 import dao.factory.DatabaseFactory
-import dao.model.LoginType
-import dao.model.UserRow
-import dao.model.Users
+import dao.tables.LoginType
+import dao.tables.UserRow
+import dao.tables.Users
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.joda.time.DateTime

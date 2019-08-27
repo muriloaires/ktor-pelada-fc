@@ -1,7 +1,6 @@
 package dao.factory
 
-import dao.model.*
-import org.jetbrains.exposed.sql.Date
+import dao.tables.*
 import org.jetbrains.exposed.sql.SizedCollection
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.joda.time.DateTime
@@ -12,6 +11,7 @@ object Mocks {
     fun mock() {
         val sports = mockSports()
         val establishment = mockEstablishment(mockUser())
+        mockSportCourts(establishment, sports)
         mockAddress(establishment)
         mockEstablishmentSports(establishment, sports)
     }
@@ -72,9 +72,38 @@ object Mocks {
                 updatedAt = DateTime.now()
                 name = "Estabelecimento 1"
                 description = "description"
+                profilePhotoUrl = "profile pic"
+                coverPhotoUrl = "cover pic"
                 user = userRow
             }
         }
+    }
+
+    private fun mockSportCourts(establishmentRow: EstablishmentRow, sports: List<SportRow>) {
+        val sportCourtRow: SportCourtRow = transaction {
+            SportCourtRow.new {
+                createdAt = DateTime.now()
+                updatedAt = DateTime.now()
+                establishment = establishmentRow
+                name = "Quadra de futebol 1"
+                description = "Descrição quadra de futebol 1"
+            }
+        }
+        val sportCourtRow2: SportCourtRow = transaction {
+            SportCourtRow.new {
+                createdAt = DateTime.now()
+                updatedAt = DateTime.now()
+                establishment = establishmentRow
+                name = "Quadra de futebol 2"
+                description = "Descrição quadra de futebol 2"
+            }
+        }
+        transaction {
+            sportCourtRow.sports = SizedCollection(sports)
+            sportCourtRow2.sports = SizedCollection(sports)
+        }
+
+
     }
 
     private fun mockEstablishmentSports(establishmentRow: EstablishmentRow, sports: List<SportRow>) {

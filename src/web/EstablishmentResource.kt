@@ -1,7 +1,7 @@
 package web
 
 import dao.EstablishmentDAO
-import dao.model.toEstablishment
+import dao.tables.toEstablishment
 import io.ktor.application.call
 import io.ktor.auth.authenticate
 import io.ktor.http.HttpStatusCode

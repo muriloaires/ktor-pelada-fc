@@ -1,6 +1,7 @@
 package dao
 
-import dao.model.EstablishmentRow
+import dao.tables.EstablishmentRow
+import dao.tables.SportCourtRow
 import web.model.incoming.EditEstablishmentAddress
 import web.model.incoming.EditedEstablishment
 import web.model.incoming.NewEstablishment

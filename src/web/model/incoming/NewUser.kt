@@ -1,7 +1,7 @@
 package web.model.incoming
 
 import com.google.gson.annotations.SerializedName
-import dao.model.LoginType
+import dao.tables.LoginType
 
 data class NewUser(
     @SerializedName("name") val _name: String?,

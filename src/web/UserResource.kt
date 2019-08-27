@@ -2,8 +2,8 @@ package web
 
 import config.JwtConfig
 import dao.UserDAO
-import dao.model.LoginType
-import dao.model.toUser
+import dao.tables.LoginType
+import dao.tables.toUser
 import io.ktor.application.call
 import io.ktor.auth.authenticate
 import io.ktor.http.HttpStatusCode
