@@ -1,14 +1,16 @@
 package dao.services
 
 import dao.UserDAO
-import dao.model.*
-import model.User
+import dao.factory.DatabaseFactory
+import dao.model.LoginType
+import dao.model.UserRow
+import dao.model.Users
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.transactions.transaction
-import security.Hash
-import dao.factory.DatabaseFactory
 import org.joda.time.DateTime
+import security.Hash
 import util.isEmail
+import web.model.incoming.NewUser
 
 class UserServiceDAO : UserDAO {
 

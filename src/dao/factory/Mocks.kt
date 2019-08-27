@@ -12,7 +12,7 @@ object Mocks {
     fun mock() {
         val sports = mockSports()
         val establishment = mockEstablishment(mockUser())
-//        mockAddress(establishment)
+        mockAddress(establishment)
         mockEstablishmentSports(establishment, sports)
     }
 

@@ -22,6 +22,7 @@ import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import web.establishment
+import web.establishmentAddress
 import web.user
 
 
@@ -63,6 +64,7 @@ fun Application.module() {
     routing {
         user(userSource)
         establishment(establishmentDAO)
+        establishmentAddress(establishmentDAO)
     }
 
     DatabaseFactory.init()

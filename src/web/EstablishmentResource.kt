@@ -10,9 +10,8 @@ import io.ktor.response.respond
 import io.ktor.routing.*
 import util.extensions.toErrorResponse
 import util.user
-import web.model.incoming.EditEstablishmentAddress
+import web.model.incoming.EditedEstablishment
 import web.model.incoming.NewEstablishment
-import web.model.incoming.NewEstablishmentAddress
 
 fun Route.establishment(establishmentDAO: EstablishmentDAO) {
 
@@ -30,7 +29,7 @@ fun Route.establishment(establishmentDAO: EstablishmentDAO) {
         /**
          * Create a establishment to the authenticated user
          */
-        post("user/establishment") {
+        post("user/establishments") {
             val body = call.receive<NewEstablishment>()
             try {
                 val newEstablishment = establishmentDAO.createEstablishment(call.user!!.id, body)
@@ -44,38 +43,17 @@ fun Route.establishment(establishmentDAO: EstablishmentDAO) {
             }
         }
 
-
-
         /**
-         * Add the address field of a establishment
+         * Update the establishment fields
          */
-        post("user/establishment/{establishmentId}/address") {
+        patch("user/establishments/{establishmentId}") {
             val establishmentId = call.parameters["establishmentId"]
-            val newAddress = call.receive<NewEstablishmentAddress>()
-            try {
-                establishmentId?.let {
-                    val updatedEstablishment = establishmentDAO.setAddress(establishmentId.toInt(), newAddress)
-                    updatedEstablishment?.let {
-                        call.respond(HttpStatusCode.OK, updatedEstablishment.toEstablishment())
-                    } ?: run {
-                        call.respond(HttpStatusCode.NotFound)
-                    }
-                }
-            } catch (e: IllegalArgumentException) {
-                call.respond(HttpStatusCode.BadRequest, e.toErrorResponse())
-            }
-        }
-
-        /**
-         * Edit the address field of a establishment
-         */
-        patch("user/establishment/{establishmentId}/address") {
-            val establishmentId = call.parameters["establishmentId"]
-            val newAddress = call.receive<EditEstablishmentAddress>()
             establishmentId?.let {
-                val updatedEstablishment = establishmentDAO.updateAddress(establishmentId.toInt(), newAddress)
-                updatedEstablishment?.let {
-                    call.respond(HttpStatusCode.OK, updatedEstablishment.toEstablishment())
+                val editedEstablishmentBody = call.receive<EditedEstablishment>()
+                val editedEstablishment =
+                    establishmentDAO.updateEstablishment(establishmentId.toInt(), editedEstablishmentBody)
+                editedEstablishment?.let {
+                    call.respond(HttpStatusCode.OK, editedEstablishment)
                 } ?: run {
                     call.respond(HttpStatusCode.NotFound)
                 }
@@ -86,7 +64,7 @@ fun Route.establishment(establishmentDAO: EstablishmentDAO) {
         /**
          * Delete and establishment
          */
-        delete("user/establishment/{establishmentId}") {
+        delete("user/establishments/{establishmentId}") {
             val establishmentId = call.parameters["establishmentId"]
             establishmentId?.let {
                 val deleted = establishmentDAO.delete(establishmentId.toInt())

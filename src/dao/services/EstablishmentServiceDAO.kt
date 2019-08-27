@@ -5,10 +5,12 @@ import dao.UserDAO
 import dao.factory.DatabaseFactory
 import dao.model.*
 import model.Establishment
+import org.jetbrains.exposed.sql.SizedCollection
 import org.jetbrains.exposed.sql.SizedIterable
 import org.jetbrains.exposed.sql.deleteWhere
 import org.joda.time.DateTime
 import web.model.incoming.EditEstablishmentAddress
+import web.model.incoming.EditedEstablishment
 import web.model.incoming.NewEstablishment
 import web.model.incoming.NewEstablishmentAddress
 
@@ -32,14 +34,21 @@ class EstablishmentServiceDAO : EstablishmentDAO {
 
     override suspend fun createEstablishment(userId: Int, newEstablishment: NewEstablishment): EstablishmentRow? {
         return DatabaseFactory.dbQuery {
-            val userRow = userDAO.findUserById(userId)
-            userRow?.let {
+            val sportsList = mutableListOf<SportsRow>()
+            newEstablishment.sportsList.forEach {
+                SportsRow.findById(it)?.let { row ->
+                    sportsList.add(row)
+                }
+            }
+            userDAO.findUserById(userId)?.let {
                 EstablishmentRow.new {
                     createdAt = DateTime.now()
                     updatedAt = DateTime.now()
-                    user = userRow
+                    user = it
                     name = newEstablishment.name
                     description = newEstablishment.description
+                }.apply {
+                    this.sports = SizedCollection(sportsList)
                 }
             }
         }
@@ -81,10 +90,12 @@ class EstablishmentServiceDAO : EstablishmentDAO {
         }
     }
 
-    override suspend fun setAddress(establishmentId: Int, newAddress: NewEstablishmentAddress): EstablishmentRow? {
+    override suspend fun createAddress(establishmentId: Int, newAddress: NewEstablishmentAddress): EstablishmentRow? {
         return DatabaseFactory.dbQuery {
             EstablishmentRow.findById(establishmentId)?.let { establishmentRow ->
-                EstablishmentAddressRow.new(0){
+                EstablishmentAddressRow.find { EstablishmentAddresses.establishment eq establishmentId }
+                    .forEach { it.delete() }
+                EstablishmentAddressRow.new(0) {
                     establishment = establishmentRow
                     newAddress.city.let { city = it }
                     newAddress.state.let { state = it }
@@ -94,9 +105,27 @@ class EstablishmentServiceDAO : EstablishmentDAO {
                     newAddress.longitude.let { longitude = it }
                     newAddress.streetAddress.let { streetAddress = it }
                 }
+
             }
             EstablishmentRow.findById(establishmentId)
         }
     }
 
+    override suspend fun updateEstablishment(
+        establishmentId: Int,
+        editedEstablishment: EditedEstablishment
+    ): EstablishmentRow? {
+        return DatabaseFactory.dbQuery {
+            EstablishmentRow.findById(establishmentId)?.let { establishmentRow ->
+                editedEstablishment.name?.let {
+                    establishmentRow.name = it
+                }
+                editedEstablishment.description?.let {
+                    establishmentRow.description = it
+                }
+            }
+            EstablishmentRow.findById(establishmentId)
+        }
+
+    }
 }
