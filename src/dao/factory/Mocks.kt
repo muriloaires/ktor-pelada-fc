@@ -16,10 +16,10 @@ object Mocks {
         mockEstablishmentSports(establishment, sports)
     }
 
-    private fun mockSports(): List<SportsRow> {
-        return mutableListOf<SportsRow>().apply {
+    private fun mockSports(): List<SportRow> {
+        return mutableListOf<SportRow>().apply {
             transaction {
-                add(SportsRow.new {
+                add(SportRow.new {
                     name = "Futebol"
                     imageThumbUrl = "imageThumUrl"
                     imageMediumUrl = "imageMediuUrl"
@@ -28,7 +28,7 @@ object Mocks {
             }
 
             transaction {
-                add(SportsRow.new {
+                add(SportRow.new {
                     name = "Basquete"
                     imageThumbUrl = "imageThumUrl"
                     imageMediumUrl = "imageMediuUrl"
@@ -36,7 +36,7 @@ object Mocks {
                 })
             }
             transaction {
-                add(SportsRow.new {
+                add(SportRow.new {
                     name = "Volei"
                     imageThumbUrl = "imageThumUrl"
                     imageMediumUrl = "imageMediuUrl"
@@ -77,7 +77,7 @@ object Mocks {
         }
     }
 
-    private fun mockEstablishmentSports(establishmentRow: EstablishmentRow, sports: List<SportsRow>) {
+    private fun mockEstablishmentSports(establishmentRow: EstablishmentRow, sports: List<SportRow>) {
         transaction {
             establishmentRow.sports = SizedCollection(sports)
         }

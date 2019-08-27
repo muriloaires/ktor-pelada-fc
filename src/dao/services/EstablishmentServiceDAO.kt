@@ -34,9 +34,9 @@ class EstablishmentServiceDAO : EstablishmentDAO {
 
     override suspend fun createEstablishment(userId: Int, newEstablishment: NewEstablishment): EstablishmentRow? {
         return DatabaseFactory.dbQuery {
-            val sportsList = mutableListOf<SportsRow>()
-            newEstablishment.sportsList.forEach {
-                SportsRow.findById(it)?.let { row ->
+            val sportsList = mutableListOf<SportRow>()
+            newEstablishment.sports.forEach {
+                SportRow.findById(it)?.let { row ->
                     sportsList.add(row)
                 }
             }
@@ -116,13 +116,23 @@ class EstablishmentServiceDAO : EstablishmentDAO {
         editedEstablishment: EditedEstablishment
     ): EstablishmentRow? {
         return DatabaseFactory.dbQuery {
+            val sportsList = mutableListOf<SportRow>()
+            editedEstablishment.sports.forEach {
+                SportRow.findById(it)?.let { row ->
+                    sportsList.add(row)
+                }
+            }
+
             EstablishmentRow.findById(establishmentId)?.let { establishmentRow ->
                 editedEstablishment.name?.let {
                     establishmentRow.name = it
                 }
+
                 editedEstablishment.description?.let {
                     establishmentRow.description = it
                 }
+
+                establishmentRow.sports = SizedCollection(sportsList)
             }
             EstablishmentRow.findById(establishmentId)
         }

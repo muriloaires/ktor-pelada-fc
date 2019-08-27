@@ -13,8 +13,8 @@ object Sports : IntIdTable() {
     val imageLargeUrl = text("image_large_url")
 }
 
-class SportsRow(id: EntityID<Int>) : IntEntity(id) {
-    companion object : IntEntityClass<SportsRow>(Sports)
+class SportRow(id: EntityID<Int>) : IntEntity(id) {
+    companion object : IntEntityClass<SportRow>(Sports)
 
     var name by Sports.name
     var imageThumbUrl by Sports.imageThumbUrl
@@ -22,5 +22,5 @@ class SportsRow(id: EntityID<Int>) : IntEntity(id) {
     var imageLargeUrl by Sports.imageLargeUrl
 }
 
-fun SportsRow.toSport() =
-    Sport(this.name, this.imageThumbUrl, this.imageMediumUrl, this.imageLargeUrl)
+fun SportRow.toSport() =
+    Sport(this.id.value, this.name, this.imageThumbUrl, this.imageMediumUrl, this.imageLargeUrl)

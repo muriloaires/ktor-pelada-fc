@@ -22,37 +22,7 @@ class EstablishmentRow(id: EntityID<Int>) : IntEntity(id) {
     var name by Establishments.name
     var user by UserRow referencedOn Establishments.user
     val addresses by EstablishmentAddressRow referrersOn EstablishmentAddresses.establishment
-    var sports by SportsRow via EstablishmentSports
-}
-
-object EstablishmentAddresses : IntIdTable() {
-    val establishment = reference("establishment", Establishments)
-    val zipCode = text("zip_code")
-    val streetAddress = text("street_address")
-    val city = text("city")
-    val state = text("state")
-    val country = text("country")
-    val latitude = long("latitude")
-    val longitude = long("longitude")
-}
-
-class EstablishmentAddressRow(id: EntityID<Int>) : IntEntity(id) {
-    companion object : IntEntityClass<EstablishmentAddressRow>(EstablishmentAddresses)
-
-    var establishment by EstablishmentRow referencedOn EstablishmentAddresses.establishment
-    var zipCode by EstablishmentAddresses.zipCode
-    var streetAddress by EstablishmentAddresses.streetAddress
-    var city by EstablishmentAddresses.city
-    var state by EstablishmentAddresses.state
-    var country by EstablishmentAddresses.country
-    var latitude by EstablishmentAddresses.latitude
-    var longitude by EstablishmentAddresses.longitude
-
-}
-
-object EstablishmentSports : Table() {
-    val establishment = reference("establishment", Establishments).primaryKey(0)
-    val sport = reference("sport", Sports).primaryKey(1)
+    var sports by SportRow via EstablishmentSports
 }
 
 fun EstablishmentRow.toEstablishment() =
@@ -76,14 +46,5 @@ fun EstablishmentRow.toEstablishment() =
         }
     )
 
-fun EstablishmentAddressRow.toEstablishmentAddress() =
-    EstablishmentAdress(
-        this.zipCode,
-        this.streetAddress,
-        this.city,
-        this.state,
-        this.country,
-        this.latitude,
-        this.longitude
-    )
+
 

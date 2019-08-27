@@ -5,7 +5,7 @@ import com.google.gson.annotations.SerializedName
 data class NewEstablishment(
     @SerializedName("name") val _name: String?,
     @SerializedName("description") val _description: String?,
-    @SerializedName("sports") val sportsList: List<Int>
+    @SerializedName("sports") val sports: List<Int>
 ) {
     val name
         get() = _name ?: throw IllegalArgumentException("name is required")
@@ -14,7 +14,7 @@ data class NewEstablishment(
         get() = _description ?: throw IllegalArgumentException("description is required")
 }
 
-data class EditedEstablishment(val name: String?, val description: String?)
+data class EditedEstablishment(val name: String?, val description: String?, val sports : List<Int>)
 
 data class NewEstablishmentAddress(
     @SerializedName("zipCode") val _zipCode: String?,

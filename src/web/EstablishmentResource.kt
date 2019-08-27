@@ -53,7 +53,7 @@ fun Route.establishment(establishmentDAO: EstablishmentDAO) {
                 val editedEstablishment =
                     establishmentDAO.updateEstablishment(establishmentId.toInt(), editedEstablishmentBody)
                 editedEstablishment?.let {
-                    call.respond(HttpStatusCode.OK, editedEstablishment)
+                    call.respond(HttpStatusCode.OK, editedEstablishment.toEstablishment())
                 } ?: run {
                     call.respond(HttpStatusCode.NotFound)
                 }
