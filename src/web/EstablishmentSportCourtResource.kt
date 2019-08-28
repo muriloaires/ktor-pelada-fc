@@ -16,85 +16,92 @@ import web.model.outgoing.ErrorResponse
 fun Route.establishmentSportCourt(establishmentCourtsDAO: EstablishmentCourtsDAO) {
 
     authenticate {
-        /**
-         * Get all sport courts from a establishment
-         */
-        get("user/establishments/{establishmentId}/courts") {
-            val establishmentId = call.parameters["establishmentId"]
-            establishmentId?.let {
-                call.respond(
-                    HttpStatusCode.OK,
-                    establishmentCourtsDAO.getAllEstablishmentCourts(establishmentId.toInt())
-                )
-            } ?: run {
-                call.respond(HttpStatusCode.BadRequest, ErrorResponse("Missing establishmentId parameter"))
-            }
-        }
 
-        /**
-         * Create a new sport court to a establishment
-         */
-        post("user/establishments/{establishmentId}/courts") {
-            val establishmentId = call.parameters["establishmentId"]
-            val newCourt = call.receive<NewEstablishmentCourt>()
-            establishmentId?.let {
-                try {
-                    val sportCourt = establishmentCourtsDAO.createCourt(establishmentId.toInt(), newCourt)
-                    sportCourt?.let {
-                        call.respond(HttpStatusCode.Created, sportCourt.toSportCourt())
-                    } ?: run {
-                        call.respond(HttpStatusCode.NotFound)
-                    }
-                } catch (e: IllegalArgumentException) {
-                    call.respond(HttpStatusCode.BadRequest, e.toErrorResponse())
+        route("user/establishments/{establishmentId}/courts"){
+
+            /**
+             * Get all sport courts from a establishment
+             */
+            get {
+                val establishmentId = call.parameters["establishmentId"]
+                establishmentId?.let {
+                    call.respond(
+                        HttpStatusCode.OK,
+                        establishmentCourtsDAO.getAllEstablishmentCourts(establishmentId.toInt())
+                    )
+                } ?: run {
+                    call.respond(HttpStatusCode.BadRequest, ErrorResponse("Missing establishmentId parameter"))
                 }
+            }
 
-            } ?: run {
-                call.respond(HttpStatusCode.BadRequest, ErrorResponse("Missing establishmentId parameter"))
+            /**
+             * Create a new sport court to a establishment
+             */
+            post {
+                val establishmentId = call.parameters["establishmentId"]
+                val newCourt = call.receive<NewEstablishmentCourt>()
+                establishmentId?.let {
+                    try {
+                        val sportCourt = establishmentCourtsDAO.createCourt(establishmentId.toInt(), newCourt)
+                        sportCourt?.let {
+                            call.respond(HttpStatusCode.Created, sportCourt.toSportCourt())
+                        } ?: run {
+                            call.respond(HttpStatusCode.NotFound)
+                        }
+                    } catch (e: IllegalArgumentException) {
+                        call.respond(HttpStatusCode.BadRequest, e.toErrorResponse())
+                    }
+
+                } ?: run {
+                    call.respond(HttpStatusCode.BadRequest, ErrorResponse("Missing establishmentId parameter"))
+                }
             }
         }
 
-        /**
-         * Update a sport court
-         */
-        patch("user/establishments/{establishmentId}/courts/{courtId}") {
-            val establishmentId = call.parameters["establishmentId"]
-            val courtId = call.parameters["courtId"]
-            establishmentId?.let {
-                courtId?.let {
-                    val editedCourtBody = call.receive<EditEstablishmentCourt>()
-                    val editedCourt =
-                        establishmentCourtsDAO.updateCourt(establishmentId.toInt(), courtId.toInt(), editedCourtBody)
-                    editedCourt?.let {
-                        call.respond(HttpStatusCode.Created, editedCourt.toSportCourt())
+        route("user/establishments/{establishmentId}/courts/{courtId}"){
+            /**
+             * Update a sport court
+             */
+            patch {
+                val establishmentId = call.parameters["establishmentId"]
+                val courtId = call.parameters["courtId"]
+                establishmentId?.let {
+                    courtId?.let {
+                        val editedCourtBody = call.receive<EditEstablishmentCourt>()
+                        val editedCourt =
+                            establishmentCourtsDAO.updateCourt(establishmentId.toInt(), courtId.toInt(), editedCourtBody)
+                        editedCourt?.let {
+                            call.respond(HttpStatusCode.Created, editedCourt.toSportCourt())
+                        } ?: run {
+                            call.respond(HttpStatusCode.NotFound)
+                        }
                     } ?: run {
-                        call.respond(HttpStatusCode.NotFound)
+                        call.respond(HttpStatusCode.BadRequest, ErrorResponse("Missing courtId parameter"))
                     }
                 } ?: run {
-                    call.respond(HttpStatusCode.BadRequest, ErrorResponse("Missing courtId parameter"))
+                    call.respond(HttpStatusCode.BadRequest, ErrorResponse("Missing establishmentId parameter"))
                 }
-            } ?: run {
-                call.respond(HttpStatusCode.BadRequest, ErrorResponse("Missing establishmentId parameter"))
+            }
+
+            /**
+             * Remove a sport court
+             */
+            delete {
+                val establishmentId = call.parameters["establishmentId"]
+                val courtId = call.parameters["courtId"]
+                establishmentId?.let {
+                    courtId?.let {
+                        val deleted = establishmentCourtsDAO.deleteCourt(establishmentId.toInt(), courtId.toInt())
+                        call.respond(if (deleted) HttpStatusCode.OK else HttpStatusCode.NotFound)
+                    } ?: run {
+                        call.respond(HttpStatusCode.BadRequest, ErrorResponse("Missing courtId parameter"))
+                    }
+                } ?: run {
+                    call.respond(HttpStatusCode.BadRequest, ErrorResponse("Missing establishmentId parameter"))
+                }
             }
         }
 
-        /**
-         * Remove a sport court
-         */
-        delete("user/establishments/{establishmentId}/courts/{courtId}") {
-            val establishmentId = call.parameters["establishmentId"]
-            val courtId = call.parameters["courtId"]
-            establishmentId?.let {
-                courtId?.let {
-                    val deleted = establishmentCourtsDAO.deleteCourt(establishmentId.toInt(), courtId.toInt())
-                    call.respond(if (deleted) HttpStatusCode.OK else HttpStatusCode.NotFound)
-                } ?: run {
-                    call.respond(HttpStatusCode.BadRequest, ErrorResponse("Missing courtId parameter"))
-                }
-            } ?: run {
-                call.respond(HttpStatusCode.BadRequest, ErrorResponse("Missing establishmentId parameter"))
-            }
-        }
     }
 
 

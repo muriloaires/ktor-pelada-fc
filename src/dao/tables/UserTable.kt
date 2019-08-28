@@ -12,7 +12,8 @@ object Users : BaseIntIdTable() {
     val email = text("email")
     val password = text("password")
     val loginType = text("login_type")
-    val isAdvertiser = bool("is_advertiser")
+    val isAdvertiser = bool("is_advertiser").default(true)
+    val photoUrl = text("photo_url").nullable()
 }
 
 class UserRow(id: EntityID<Int>) : IntEntity(id) {
@@ -26,6 +27,7 @@ class UserRow(id: EntityID<Int>) : IntEntity(id) {
     var password by Users.password
     var loginType by Users.loginType
     var isAdvertiser by Users.isAdvertiser
+    var photoUrl by Users.photoUrl
     val establishments by EstablishmentRow referrersOn Establishments.user
 }
 
@@ -41,5 +43,6 @@ fun UserRow.toUser() = User(
     this.username,
     this.email,
     this.loginType,
-    this.isAdvertiser
+    this.isAdvertiser,
+    photoUrl = this.photoUrl
 )

@@ -5,6 +5,7 @@ import dao.EstablishmentCourtsDAO
 import dao.EstablishmentDAO
 import dao.UserDAO
 import dao.factory.DatabaseFactory
+import dao.services.EstablishmentCourtsServiceDAO
 import dao.services.EstablishmentServiceDAO
 import dao.services.UserServiceDAO
 import dao.tables.EstablishmentRow
@@ -27,18 +28,24 @@ import io.ktor.routing.get
 import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
+import kotlinx.io.errors.IOException
 import model.Establishment
 import org.jetbrains.exposed.sql.transactions.transaction
 import web.establishment
 import web.establishmentAddress
 import web.establishmentSportCourt
 import web.user
+import java.io.File
 
 
 fun Application.module() {
+    val uploadDir = File("C:\\ktor\\uploads")
+    if (!uploadDir.mkdirs() && !uploadDir.exists()) {
+        throw IOException("Failed to create directory ${uploadDir.absolutePath}")
+    }
     val userSource: UserDAO = UserServiceDAO()
     val establishmentDAO: EstablishmentDAO = EstablishmentServiceDAO()
-    val establishmentCourtsDAO: EstablishmentCourtsDAO
+    val establishmentCourtsDAO: EstablishmentCourtsDAO = EstablishmentCourtsServiceDAO()
     val issuer = "https://jwt-provider-domain/"
     val realm = "ktor sample app"
 
@@ -72,7 +79,7 @@ fun Application.module() {
         }
     }
     routing {
-        user(userSource)
+        user(userSource, uploadDir)
         establishment(establishmentDAO)
         establishmentAddress(establishmentDAO)
         establishmentSportCourt(establishmentCourtsDAO)

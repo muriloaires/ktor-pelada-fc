@@ -86,26 +86,30 @@ class UserServiceDAO : UserDAO {
     }
 
     override suspend fun findByEmail(email: String): UserRow? {
-        return UserRow.find { Users.email eq email }.singleOrNull()
+        return DatabaseFactory.dbQuery {
+            UserRow.find { Users.email eq email }.singleOrNull()
+        }
     }
 
     override suspend fun findByUsername(username: String): UserRow? {
-        return UserRow.find { Users.username eq username }.singleOrNull()
+        return DatabaseFactory.dbQuery { UserRow.find { Users.username eq username }.singleOrNull() }
     }
 
     override suspend fun addUser(user: NewUser): UserRow {
-        return UserRow.new {
-            createdAt = DateTime.now()
-            updatedAt = DateTime.now()
-            name = user.name
-            email = user.email
-            username = user.username
-            password = user.password?.let { password ->
-                Hash.sha256(password)
-            } ?: run {
-                Hash.sha256(System.currentTimeMillis().toString())
+        return  DatabaseFactory.dbQuery {
+            UserRow.new {
+                createdAt = DateTime.now()
+                updatedAt = DateTime.now()
+                name = user.name
+                email = user.email
+                username = user.username
+                password = user.password?.let { password ->
+                    Hash.sha256(password)
+                } ?: run {
+                    Hash.sha256(System.currentTimeMillis().toString())
+                }
+                loginType = user.loginType
             }
-            loginType = user.loginType
         }
     }
 

@@ -14,5 +14,6 @@ data class User(
     val loginType: String,
     val isAdvertiser: Boolean,
     var establishments: List<Establishment>? = null,
-    var token: String? = null
+    var token: String? = null,
+    var photoUrl: String? = null
 ) : BaseModel(), Principal

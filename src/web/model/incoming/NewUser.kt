@@ -29,7 +29,9 @@ data class NewUser(
 
     val password: String?
         get() {
-            require(loginType != LoginType.DEFAULT.value && _password == null) { "password is required for default loginType" }
+            require(loginType == LoginType.DEFAULT.value && _password != null) {
+                "password is required for default loginType"
+            }
             return _password
         }
 

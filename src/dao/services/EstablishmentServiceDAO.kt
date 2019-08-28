@@ -4,6 +4,7 @@ import dao.EstablishmentDAO
 import dao.UserDAO
 import dao.factory.DatabaseFactory
 import dao.tables.*
+import org.jetbrains.exposed.dao.EntityID
 import org.jetbrains.exposed.sql.SizedCollection
 import org.jetbrains.exposed.sql.deleteWhere
 import org.joda.time.DateTime
@@ -14,15 +15,14 @@ import web.model.incoming.NewEstablishmentAddress
 
 class EstablishmentServiceDAO : EstablishmentDAO {
     private val userDAO: UserDAO = UserServiceDAO()
-    override suspend fun getAllEstablishments(): List<EstablishmentRow> {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+
+    override suspend fun getEstablishment(establishmentId: Int): EstablishmentRow? {
+        return DatabaseFactory.dbQuery {
+            EstablishmentRow.findById(establishmentId)
+        }
     }
 
-    override suspend fun findEstablishmentById(id: Int): EstablishmentRow? {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override suspend fun getAllEstablishmentsFromUser(userId: Int): List<EstablishmentRow?> {
+    override suspend fun getUserEstablishments(userId: Int): List<EstablishmentRow> {
         return DatabaseFactory.dbQuery {
             EstablishmentRow.find {
                 Establishments.user eq userId
@@ -52,7 +52,7 @@ class EstablishmentServiceDAO : EstablishmentDAO {
         }
     }
 
-    override suspend fun delete(establishmentId: Int): Boolean {
+    override suspend fun deleteEstablishment(establishmentId: Int): Boolean {
         return DatabaseFactory.dbQuery {
             EstablishmentRow.findById(establishmentId)?.let {
                 it.addresses.map { addressRow -> addressRow.delete() }
@@ -74,14 +74,37 @@ class EstablishmentServiceDAO : EstablishmentDAO {
         return DatabaseFactory.dbQuery {
             EstablishmentRow.findById(establishmentId)?.let { establishmentRow ->
                 EstablishmentAddressRow.findById(0)?.let { establishmentAddressRow ->
-                    establishmentAddressRow.establishment = establishmentRow
-                    editedAddress.city?.let { establishmentAddressRow.city = it }
-                    editedAddress.state?.let { establishmentAddressRow.state = it }
-                    editedAddress.country?.let { establishmentAddressRow.country = it }
-                    editedAddress.zipCode?.let { establishmentAddressRow.zipCode = it }
-                    editedAddress.latitude?.let { establishmentAddressRow.latitude = it }
-                    editedAddress.longitude?.let { establishmentAddressRow.longitude = it }
-                    editedAddress.streetAddress?.let { establishmentAddressRow.streetAddress = it }
+                    var updated = false
+                    editedAddress.city?.let {
+                        establishmentAddressRow.city = it
+                        updated = true
+                    }
+                    editedAddress.state?.let {
+                        establishmentAddressRow.state = it
+                        updated = true
+                    }
+                    editedAddress.country?.let {
+                        establishmentAddressRow.country = it
+                        updated = true
+                    }
+                    editedAddress.zipCode?.let {
+                        establishmentAddressRow.zipCode = it
+                        updated = true
+                    }
+                    editedAddress.latitude?.let {
+                        establishmentAddressRow.latitude = it
+                        updated = true
+                    }
+                    editedAddress.longitude?.let {
+                        establishmentAddressRow.longitude = it
+                        updated = true
+                    }
+                    editedAddress.streetAddress?.let {
+                        establishmentAddressRow.streetAddress = it
+                    }
+                    if (updated) {
+                        establishmentRow.updatedAt = DateTime.now()
+                    }
                 }
             }
             EstablishmentRow.findById(establishmentId)
@@ -120,19 +143,25 @@ class EstablishmentServiceDAO : EstablishmentDAO {
                     sportsList.add(row)
                 }
             }
-
-            EstablishmentRow.findById(establishmentId)?.let { establishmentRow ->
+            EstablishmentRow.findById(establishmentId)?.apply {
+                var updated = false
                 editedEstablishment.name?.let {
-                    establishmentRow.name = it
+                    name = it
+                    updated = true
                 }
 
                 editedEstablishment.description?.let {
-                    establishmentRow.description = it
+                    description = it
+                    updated = true
                 }
-
-                establishmentRow.sports = SizedCollection(sportsList)
+                if (sportsList.isNotEmpty()) {
+                    sports = SizedCollection(sportsList)
+                    updated = true
+                }
+                if (updated) {
+                    updatedAt = DateTime.now()
+                }
             }
-            EstablishmentRow.findById(establishmentId)
         }
 
     }
