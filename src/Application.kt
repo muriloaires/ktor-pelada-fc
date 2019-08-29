@@ -39,10 +39,7 @@ import java.io.File
 
 
 fun Application.module() {
-    val uploadDir = File("C:\\ktor\\uploads")
-    if (!uploadDir.mkdirs() && !uploadDir.exists()) {
-        throw IOException("Failed to create directory ${uploadDir.absolutePath}")
-    }
+
     val userSource: UserDAO = UserServiceDAO()
     val establishmentDAO: EstablishmentDAO = EstablishmentServiceDAO()
     val establishmentCourtsDAO: EstablishmentCourtsDAO = EstablishmentCourtsServiceDAO()
@@ -79,7 +76,7 @@ fun Application.module() {
         }
     }
     routing {
-        user(userSource, uploadDir)
+        user(userSource)
         establishment(establishmentDAO)
         establishmentAddress(establishmentDAO)
         establishmentSportCourt(establishmentCourtsDAO)

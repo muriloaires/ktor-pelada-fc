@@ -12,7 +12,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 object DatabaseFactory {
 
     fun init() {
-        // Database.connect("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1", driver = "org.h2.Driver")
+//         Database.connect("jdbc:h2:mem:test", driver = "org.h2.Driver")
         Database.connect(hikari())
         transaction {
             create(
@@ -30,8 +30,10 @@ object DatabaseFactory {
 
     private fun hikari(): HikariDataSource {
         val config = HikariConfig()
-        config.driverClassName = "org.h2.Driver"
-        config.jdbcUrl = "jdbc:h2:mem:test"
+        config.driverClassName = "org.postgresql.ds.PGSimpleDataSource"
+        config.username = "postgres"
+        config.password = "eldorado"
+        config.jdbcUrl = "jdbc:postgresql://localhost:5432/batata_pamonha_tila"
         config.maximumPoolSize = 3
         config.isAutoCommit = false
         config.transactionIsolation = "TRANSACTION_REPEATABLE_READ"

@@ -8,7 +8,7 @@ import org.jetbrains.exposed.dao.IntEntityClass
 
 object Users : BaseIntIdTable() {
     val name = text("name")
-    val username = text("username")
+    val username = text("username").uniqueIndex()
     val email = text("email")
     val password = text("password")
     val loginType = text("login_type")

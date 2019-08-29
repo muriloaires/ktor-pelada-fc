@@ -27,60 +27,40 @@ import util.extensions.toErrorResponse
 import util.user
 import web.model.incoming.NewUser
 import web.model.outgoing.ErrorResponse
+import web.request.MultipartHandler
 import java.io.*
 
-// Integer a = new Integer(0)
-fun Route.user(userSource: UserDAO, uploadDir: File) {
+fun Route.user(userSource: UserDAO) {
 
     post("/register") {
         var user: User? = null
         try {
-
             val multiPart = call.receiveMultipart()
-            var photoFile: File? = null
+            var photoFile: String? = ""
 
             multiPart.forEachPart { part ->
                 if (part is PartData.FormItem) {
-                    if (part.name == "part") {
-                        user = userSource.addUser(Gson().fromJson(part.value, NewUser::class.java)).toUser()
-                    }
+                    user = userSource.addUser(MultipartHandler.getFormItem(part, NewUser::class.java)).toUser()
                 } else if (part is PartData.FileItem) {
-                    part.originalFileName?.let { originalFileName ->
-                        val ext = File(originalFileName).extension
-                        val file = File(
-                            uploadDir,
-                            "upload-${System.currentTimeMillis()}-${user?.id.hashCode()}.$ext"
-                        )
-                        part.streamProvider()
-                            .use { its -> file.outputStream().buffered().use { its.copyToSuspend(it) } }
-                        photoFile = file
-                    }
+                    photoFile = MultipartHandler.saveMultipartFile(part)
                 }
-
                 part.dispose
             }
 
-
-            when {
-
-                userSource.findByEmail(user!!.email) != null ->
-                    call.respond(HttpStatusCode.BadRequest, ErrorResponse("Email ja cadastrado"))
-                userSource.findByUsername(user!!.username) != null ->
-                    call.respond(HttpStatusCode.BadRequest, ErrorResponse("Username já cadastrado"))
-
-                else -> {
-
-                }
-            }
-
-            call.respond(
-                HttpStatusCode.Created,
+//            when {
+//                userSource.findByEmail(user!!.email) != null ->
+//                    call.respond(HttpStatusCode.BadRequest, ErrorResponse("Email ja cadastrado"))
+//                userSource.findByUsername(user!!.username) != null ->
+//                    call.respond(HttpStatusCode.BadRequest, ErrorResponse("Username já cadastrado"))
+//                else -> {
+            call.respond(HttpStatusCode.Created,
                 user!!.apply {
                     this.token = JwtConfig.makeToken(this)
-                    this.photoUrl = photoFile?.name
+                    this.photoUrl = photoFile
                 }
             )
-
+//                }
+//            }
 
         } catch (e: IllegalArgumentException) {
             call.respond(HttpStatusCode.BadRequest, e.toErrorResponse())
@@ -153,33 +133,3 @@ fun Route.user(userSource: UserDAO, uploadDir: File) {
 
 }
 
-/**
- * Utility boilerplate method that suspending,
- * copies a [this] [InputStream] into an [out] [OutputStream] in a separate thread.
- *
- * [bufferSize] and [yieldSize] allows to control how and when the suspending is performed.
- * The [dispatcher] allows to specify where will be this executed (for example a specific thread pool).
- */
-suspend fun InputStream.copyToSuspend(
-    out: OutputStream,
-    bufferSize: Int = DEFAULT_BUFFER_SIZE,
-    yieldSize: Int = 4 * 1024 * 1024,
-    dispatcher: CoroutineDispatcher = Dispatchers.IO
-): Long {
-    return withContext(dispatcher) {
-        val buffer = ByteArray(bufferSize)
-        var bytesCopied = 0L
-        var bytesAfterYield = 0L
-        while (true) {
-            val bytes = read(buffer).takeIf { it >= 0 } ?: break
-            out.write(buffer, 0, bytes)
-            if (bytesAfterYield >= yieldSize) {
-                yield()
-                bytesAfterYield %= yieldSize
-            }
-            bytesCopied += bytes
-            bytesAfterYield += bytes
-        }
-        return@withContext bytesCopied
-    }
-}
