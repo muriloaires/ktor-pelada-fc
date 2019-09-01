@@ -12,6 +12,7 @@ import util.extensions.toErrorResponse
 import util.user
 import web.model.incoming.EditedEstablishment
 import web.model.incoming.NewEstablishment
+import web.model.incoming.NewEstablishmentBusinessHour
 import web.model.outgoing.ErrorResponse
 
 fun Route.establishment(establishmentDAO: EstablishmentDAO) {
@@ -78,6 +79,8 @@ fun Route.establishment(establishmentDAO: EstablishmentDAO) {
                     } ?: run {
                         call.respond(HttpStatusCode.NotFound)
                     }
+                } ?: run {
+                    call.respond(HttpStatusCode.BadRequest, ErrorResponse("parameter establishmentId is required"))
                 }
             }
 
@@ -90,7 +93,39 @@ fun Route.establishment(establishmentDAO: EstablishmentDAO) {
                 establishmentId?.let {
                     val deleted = establishmentDAO.deleteEstablishment(establishmentId.toInt())
                     call.respond(if (deleted) HttpStatusCode.OK else HttpStatusCode.NotFound)
+                } ?: run {
+                    call.respond(HttpStatusCode.BadRequest, ErrorResponse("parameter establishmentId is required"))
                 }
+            }
+        }
+
+
+        patch("/user/establishments/{establishmentId}/businesshours/{dayOfWeek}") {
+            val establishmentId = call.parameters["establishmentId"]
+            val dayOfWeek = call.parameters["dayOfWeek"]
+            establishmentId?.let {
+                dayOfWeek?.let {
+                    val newBusiness = call.receive<NewEstablishmentBusinessHour>()
+                    try {
+                        establishmentDAO.updateEstablishmentBusinessHours(
+                            establishmentId.toInt(),
+                            newBusiness,
+                            dayOfWeek.toInt()
+                        )?.let {
+                            call.respond(HttpStatusCode.OK, it.toEstablishment())
+                        } ?: run {
+                            call.respond(HttpStatusCode.NotFound, ErrorResponse("Establishment not found"))
+                        }
+                    } catch (e: IllegalArgumentException) {
+                        call.respond(HttpStatusCode.BadRequest, e.toErrorResponse())
+                    }
+
+                } ?: run {
+                    call.respond(HttpStatusCode.BadRequest, ErrorResponse("parameter dayOfWeek is required"))
+                }
+
+            } ?: run {
+                call.respond(HttpStatusCode.BadRequest, ErrorResponse("parameter establishmentId is required"))
             }
         }
 

@@ -26,6 +26,7 @@ class EstablishmentRow(id: EntityID<Int>) : IntEntity(id) {
     val addresses by EstablishmentAddressRow referrersOn EstablishmentAddresses.establishment
     val sportCourts by SportCourtRow referrersOn SportCourts.establishment
     var sports by SportRow via EstablishmentSportsRelation
+    val businessHours by EstablishmentBusinessHourRow referrersOn EstablishmentBusinessHours.establishment
 }
 
 fun EstablishmentRow.toEstablishment() =
@@ -48,6 +49,10 @@ fun EstablishmentRow.toEstablishment() =
         },
         transaction {
             this@toEstablishment.sports.map { it.toSport() }
+        },
+
+        transaction {
+            this@toEstablishment.businessHours.map { it.toEstablishmentBusinessHour() }
         }
     )
 

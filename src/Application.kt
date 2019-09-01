@@ -22,21 +22,21 @@ import io.ktor.features.ContentNegotiation
 import io.ktor.features.DefaultHeaders
 import io.ktor.gson.gson
 import io.ktor.http.HttpMethod
+import io.ktor.http.HttpStatusCode
+import io.ktor.locations.Location
 import io.ktor.locations.Locations
+import io.ktor.locations.get
 import io.ktor.response.respond
+import io.ktor.response.respondText
 import io.ktor.routing.get
 import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
-import kotlinx.io.errors.IOException
-import model.Establishment
 import org.jetbrains.exposed.sql.transactions.transaction
 import web.establishment
 import web.establishmentAddress
 import web.establishmentSportCourt
 import web.user
-import java.io.File
-
 
 fun Application.module() {
 
@@ -80,12 +80,8 @@ fun Application.module() {
         establishment(establishmentDAO)
         establishmentAddress(establishmentDAO)
         establishmentSportCourt(establishmentCourtsDAO)
-        get("teste") {
-            val establishments = transaction {
-                EstablishmentRow.all().toList().map { it.toEstablishment() }
-            }
-            call.respond(establishments)
-
+        get("teste"){
+            call.respond(HttpStatusCode.OK,establishmentDAO.getAllEstablishments().map { it.toEstablishment() })
         }
     }
 
@@ -93,8 +89,9 @@ fun Application.module() {
 
 }
 
+
 fun main() {
-    embeddedServer(Netty, 8080, module = Application::module).start()
+    embeddedServer(Netty, 8081, module = Application::module).start()
 }
 
 private val algorithm = Algorithm.HMAC512("zAP5MBA4B4Ijz0MZaS48")

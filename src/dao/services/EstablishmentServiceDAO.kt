@@ -1,20 +1,20 @@
 package dao.services
 
+import dao.EstablishmentBusinessHourDAO
 import dao.EstablishmentDAO
 import dao.UserDAO
 import dao.factory.DatabaseFactory
 import dao.tables.*
 import org.jetbrains.exposed.dao.EntityID
 import org.jetbrains.exposed.sql.SizedCollection
+import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
 import org.joda.time.DateTime
-import web.model.incoming.EditEstablishmentAddress
-import web.model.incoming.EditedEstablishment
-import web.model.incoming.NewEstablishment
-import web.model.incoming.NewEstablishmentAddress
+import web.model.incoming.*
 
 class EstablishmentServiceDAO : EstablishmentDAO {
     private val userDAO: UserDAO = UserServiceDAO()
+    private val establishmentBusinessHoursDAO: EstablishmentBusinessHourDAO = EstablishmentBusinessHourServiceDAO()
 
     override suspend fun getEstablishment(establishmentId: Int): EstablishmentRow? {
         return DatabaseFactory.dbQuery {
@@ -33,7 +33,7 @@ class EstablishmentServiceDAO : EstablishmentDAO {
     override suspend fun createEstablishment(userId: Int, newEstablishment: NewEstablishment): EstablishmentRow? {
         return DatabaseFactory.dbQuery {
             val sportsList = mutableListOf<SportRow>()
-            newEstablishment.sports.forEach {
+            newEstablishment.sports?.forEach {
                 SportRow.findById(it)?.let { row ->
                     sportsList.add(row)
                 }
@@ -47,6 +47,7 @@ class EstablishmentServiceDAO : EstablishmentDAO {
                     description = newEstablishment.description
                 }.apply {
                     this.sports = SizedCollection(sportsList)
+                    establishmentBusinessHoursDAO.createInitialBusinessHoursForNewEstablishment(this)
                 }
             }
         }
@@ -72,42 +73,43 @@ class EstablishmentServiceDAO : EstablishmentDAO {
         editedAddress: EditEstablishmentAddress
     ): EstablishmentRow? {
         return DatabaseFactory.dbQuery {
-            EstablishmentRow.findById(establishmentId)?.let { establishmentRow ->
-                EstablishmentAddressRow.findById(0)?.let { establishmentAddressRow ->
-                    var updated = false
-                    editedAddress.city?.let {
-                        establishmentAddressRow.city = it
-                        updated = true
+            EstablishmentRow.findById(establishmentId)?.apply {
+                var updated = false
+                EstablishmentAddressRow.find { EstablishmentAddresses.establishment eq establishmentId }.singleOrNull()
+                    ?.apply {
+                        editedAddress.city?.let {
+                            city = it
+                            updated = true
+                        }
+                        editedAddress.state?.let {
+                            state = it
+                            updated = true
+                        }
+                        editedAddress.country?.let {
+                            country = it
+                            updated = true
+                        }
+                        editedAddress.zipCode?.let {
+                            zipCode = it
+                            updated = true
+                        }
+                        editedAddress.latitude?.let {
+                            latitude = it
+                            updated = true
+                        }
+                        editedAddress.longitude?.let {
+                            longitude = it
+                            updated = true
+                        }
+                        editedAddress.streetAddress?.let {
+                            streetAddress = it
+                        }
                     }
-                    editedAddress.state?.let {
-                        establishmentAddressRow.state = it
-                        updated = true
-                    }
-                    editedAddress.country?.let {
-                        establishmentAddressRow.country = it
-                        updated = true
-                    }
-                    editedAddress.zipCode?.let {
-                        establishmentAddressRow.zipCode = it
-                        updated = true
-                    }
-                    editedAddress.latitude?.let {
-                        establishmentAddressRow.latitude = it
-                        updated = true
-                    }
-                    editedAddress.longitude?.let {
-                        establishmentAddressRow.longitude = it
-                        updated = true
-                    }
-                    editedAddress.streetAddress?.let {
-                        establishmentAddressRow.streetAddress = it
-                    }
-                    if (updated) {
-                        establishmentRow.updatedAt = DateTime.now()
-                    }
+                if (updated) {
+                    this@apply.updatedAt = DateTime.now()
                 }
             }
-            EstablishmentRow.findById(establishmentId)
+
         }
     }
 
@@ -116,7 +118,7 @@ class EstablishmentServiceDAO : EstablishmentDAO {
             EstablishmentRow.findById(establishmentId)?.let { establishmentRow ->
                 EstablishmentAddressRow.find { EstablishmentAddresses.establishment eq establishmentId }
                     .forEach { it.delete() }
-                EstablishmentAddressRow.new(0) {
+                EstablishmentAddressRow.new {
                     establishment = establishmentRow
                     newAddress.city.let { city = it }
                     newAddress.state.let { state = it }
@@ -161,6 +163,32 @@ class EstablishmentServiceDAO : EstablishmentDAO {
                 if (updated) {
                     updatedAt = DateTime.now()
                 }
+            }
+        }
+
+    }
+
+    override suspend fun updateEstablishmentBusinessHours(
+        establishmentId: Int,
+        newBusinessHour: NewEstablishmentBusinessHour,
+        dayOfWeek: Int
+    ): EstablishmentRow? {
+        require(dayOfWeek in 1..7) { "dayOfWeek must be between 1 and 7" }
+        return DatabaseFactory.dbQuery {
+            EstablishmentBusinessHourRow.find {
+                (EstablishmentBusinessHours.establishment eq establishmentId) and (EstablishmentBusinessHours.dayOfWeek eq dayOfWeek)
+            }.singleOrNull()?.let { businessRow ->
+                businessRow.isOpen = newBusinessHour.isOpen
+                newBusinessHour.openingTime?.let {
+                    businessRow.openingTime = DateTime(it)
+                }
+                newBusinessHour.closingTime?.let {
+                    businessRow.closingTime = DateTime(it)
+                }
+            }
+
+            EstablishmentRow.findById(establishmentId)?.apply {
+                updatedAt = DateTime.now()
             }
         }
 

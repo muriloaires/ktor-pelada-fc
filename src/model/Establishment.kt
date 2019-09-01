@@ -12,6 +12,7 @@ data class Establishment(
     var profilePhotoUrl: String? = null,
     var coverPhotoUrl: String? = null,
     val address: EstablishmentAddress?,
-    val sports: List<Sport>
+    val sports: List<Sport>,
+    val businessHours : List<EstablishmentBusinessHour>
 ) : BaseModel()
 

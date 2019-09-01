@@ -98,8 +98,6 @@ class UserServiceDAO : UserDAO {
     override suspend fun addUser(user: NewUser): UserRow {
         return  DatabaseFactory.dbQuery {
             UserRow.new {
-                createdAt = DateTime.now()
-                updatedAt = DateTime.now()
                 name = user.name
                 email = user.email
                 username = user.username

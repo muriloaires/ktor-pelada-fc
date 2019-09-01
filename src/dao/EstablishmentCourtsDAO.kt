@@ -10,8 +10,8 @@ interface EstablishmentCourtsDAO {
 
     suspend fun createCourt(establishmentId: Int, newCourt: NewEstablishmentCourt): SportCourtRow?
 
-    suspend fun updateCourt(establishmentId: Int, courtId: Int, editedCourtBody: EditEstablishmentCourt): SportCourtRow?
+    suspend fun updateCourt( courtId: Int, editedCourtBody: EditEstablishmentCourt): SportCourtRow?
 
-    suspend fun deleteCourt(establishmentId: Int, courtId: Int): Boolean
+    suspend fun deleteCourt(courtId: Int): Boolean
 
 }

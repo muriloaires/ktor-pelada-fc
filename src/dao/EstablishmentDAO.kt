@@ -1,13 +1,17 @@
 package dao
 
+import dao.factory.DatabaseFactory
 import dao.tables.EstablishmentRow
 import dao.tables.SportCourtRow
-import web.model.incoming.EditEstablishmentAddress
-import web.model.incoming.EditedEstablishment
-import web.model.incoming.NewEstablishment
-import web.model.incoming.NewEstablishmentAddress
+import web.model.incoming.*
 
 interface EstablishmentDAO {
+
+    suspend fun getAllEstablishments(): List<EstablishmentRow> {
+        return DatabaseFactory.dbQuery {
+            EstablishmentRow.all().toList()
+        }
+    }
 
     suspend fun getEstablishment(establishmentId: Int): EstablishmentRow?
 
@@ -22,5 +26,12 @@ interface EstablishmentDAO {
     suspend fun createAddress(establishmentId: Int, newAddress: NewEstablishmentAddress): EstablishmentRow?
 
     suspend fun updateEstablishment(establishmentId: Int, editedEstablishment: EditedEstablishment): EstablishmentRow?
+
+    suspend fun updateEstablishmentBusinessHours(
+        establishmentId: Int,
+        newBusinessHour: NewEstablishmentBusinessHour,
+        dayOfWeek: Int
+    ): EstablishmentRow?
+
 
 }

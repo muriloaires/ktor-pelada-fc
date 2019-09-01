@@ -7,7 +7,7 @@ import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.IntIdTable
 
 object EstablishmentAddresses : IntIdTable() {
-    val establishment = reference("establishment", Establishments)
+    val establishment = reference("establishment", Establishments).uniqueIndex()
     val zipCode = text("zip_code")
     val streetAddress = text("street_address")
     val city = text("city")

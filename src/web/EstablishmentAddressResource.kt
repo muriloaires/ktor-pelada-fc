@@ -19,7 +19,7 @@ fun Route.establishmentAddress(establishmentDAO: EstablishmentDAO) {
 
     authenticate {
 
-        route("user/establishments/{establishmentId}") {
+        route("user/establishments/{establishmentId}/address") {
 
             /**
              * Add the address field of a establishment

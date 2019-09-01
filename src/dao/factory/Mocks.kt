@@ -1,5 +1,6 @@
 package dao.factory
 
+import dao.services.EstablishmentBusinessHourServiceDAO
 import dao.tables.*
 import org.jetbrains.exposed.sql.SizedCollection
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -75,6 +76,8 @@ object Mocks {
                 profilePhotoUrl = "profile pic"
                 coverPhotoUrl = "cover pic"
                 user = userRow
+            }.apply {
+                EstablishmentBusinessHourServiceDAO().createInitialBusinessHoursForNewEstablishment(this)
             }
         }
     }

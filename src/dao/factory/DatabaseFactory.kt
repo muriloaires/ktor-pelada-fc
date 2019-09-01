@@ -5,9 +5,11 @@ import com.zaxxer.hikari.HikariDataSource
 import dao.tables.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils.create
 import org.jetbrains.exposed.sql.transactions.transaction
+import util.extensions.checkIfIllegalArgument
 
 object DatabaseFactory {
 
@@ -22,18 +24,19 @@ object DatabaseFactory {
                 EstablishmentAddresses,
                 EstablishmentSportsRelation,
                 SportCourts,
-                CourtSportsRelation
+                CourtSportsRelation,
+                EstablishmentBusinessHours
             )
         }
-        Mocks.mock()
+//        Mocks.mock()
     }
 
     private fun hikari(): HikariDataSource {
         val config = HikariConfig()
         config.driverClassName = "org.postgresql.ds.PGSimpleDataSource"
         config.username = "postgres"
-        config.password = "eldorado"
-        config.jdbcUrl = "jdbc:postgresql://localhost:5432/batata_pamonha_tila"
+        config.password = "peladafc"
+        config.jdbcUrl = "jdbc:postgresql://localhost:5432/pelada_fc"
         config.maximumPoolSize = 3
         config.isAutoCommit = false
         config.transactionIsolation = "TRANSACTION_REPEATABLE_READ"
@@ -43,7 +46,11 @@ object DatabaseFactory {
 
     suspend fun <T> dbQuery(block: () -> T): T =
         withContext(Dispatchers.IO) {
-            transaction { block() }
+            try {
+                transaction { block() }
+            } catch (e: ExposedSQLException) {
+                throw e.checkIfIllegalArgument()
+            }
         }
 
 }

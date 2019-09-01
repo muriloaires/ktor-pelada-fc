@@ -14,6 +14,7 @@ import io.ktor.http.content.streamProvider
 import io.ktor.request.receive
 import io.ktor.request.receiveMultipart
 import io.ktor.response.respond
+import io.ktor.response.respondFile
 import io.ktor.routing.Route
 import io.ktor.routing.get
 import io.ktor.routing.patch
@@ -46,27 +47,15 @@ fun Route.user(userSource: UserDAO) {
                 }
                 part.dispose
             }
-
-//            when {
-//                userSource.findByEmail(user!!.email) != null ->
-//                    call.respond(HttpStatusCode.BadRequest, ErrorResponse("Email ja cadastrado"))
-//                userSource.findByUsername(user!!.username) != null ->
-//                    call.respond(HttpStatusCode.BadRequest, ErrorResponse("Username já cadastrado"))
-//                else -> {
             call.respond(HttpStatusCode.Created,
                 user!!.apply {
                     this.token = JwtConfig.makeToken(this)
                     this.photoUrl = photoFile
                 }
             )
-//                }
-//            }
-
         } catch (e: IllegalArgumentException) {
             call.respond(HttpStatusCode.BadRequest, e.toErrorResponse())
         }
-
-
     }
 
     get("/login") {
@@ -127,6 +116,11 @@ fun Route.user(userSource: UserDAO) {
                     call.respond(HttpStatusCode.BadRequest, e.toErrorResponse())
                 }
             }
+        }
+
+        get("/image/{imageName}") {
+            val imageName = call.parameters["imageName"]
+            call.respondFile(File("C:\\ktor\\uploads\\$imageName"))
         }
 
     }
