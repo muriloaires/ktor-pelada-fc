@@ -1,6 +1,7 @@
 package web.request
 
 import com.google.gson.Gson
+import com.google.gson.JsonSyntaxException
 import io.ktor.http.content.PartData
 import io.ktor.http.content.streamProvider
 import kotlinx.coroutines.CoroutineDispatcher
@@ -35,7 +36,11 @@ object MultipartHandler {
     }
 
     fun <T> getFormItem(part: PartData.FormItem, clazz: Class<T>): T {
-        return Gson().fromJson(part.value, clazz)
+        try {
+            return Gson().fromJson(part.value, clazz)
+        } catch (e: JsonSyntaxException) {
+            throw IllegalArgumentException("json string could'nt be parsed")
+        }
     }
 
     /**

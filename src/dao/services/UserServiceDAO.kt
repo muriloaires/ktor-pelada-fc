@@ -10,6 +10,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.joda.time.DateTime
 import security.Hash
 import util.isEmail
+import web.model.incoming.EditedUser
 import web.model.incoming.NewUser
 
 class UserServiceDAO : UserDAO {
@@ -67,24 +68,6 @@ class UserServiceDAO : UserDAO {
     }
 
 
-    override suspend fun updateUsername(userId: Int, newUsername: String): UserRow? {
-        return DatabaseFactory.dbQuery {
-            UserRow.findById(userId)?.apply {
-                username = newUsername
-                updatedAt = DateTime.now()
-            }
-        }
-    }
-
-    override suspend fun updateEmail(userId: Int, newEmail: String): UserRow? {
-        return DatabaseFactory.dbQuery {
-            UserRow.findById(userId)?.apply {
-                email = newEmail
-                updatedAt = DateTime.now()
-            }
-        }
-    }
-
     override suspend fun findByEmail(email: String): UserRow? {
         return DatabaseFactory.dbQuery {
             UserRow.find { Users.email eq email }.singleOrNull()
@@ -96,7 +79,7 @@ class UserServiceDAO : UserDAO {
     }
 
     override suspend fun addUser(user: NewUser): UserRow {
-        return  DatabaseFactory.dbQuery {
+        return DatabaseFactory.dbQuery {
             UserRow.new {
                 name = user.name
                 email = user.email
@@ -107,6 +90,36 @@ class UserServiceDAO : UserDAO {
                     Hash.sha256(System.currentTimeMillis().toString())
                 }
                 loginType = user.loginType
+            }
+        }
+    }
+
+    override suspend fun updateUser(userId: Int, editedUser: EditedUser): UserRow {
+        return DatabaseFactory.dbQuery {
+            UserRow.findById(userId)!!.apply {
+                var changed = false
+                if (editedUser.email.isNullOrEmpty().not() && this.loginType != LoginType.DEFAULT.value) {
+                    throw IllegalArgumentException("email cannot be changed for default loginType")
+                }
+                editedUser.name?.let {
+                    this.name = it
+                    changed = true
+                }
+                editedUser.username?.let {
+                    this.username = it
+                    changed = true
+                }
+                editedUser.email?.let {
+                    this.email = it
+                    changed = true
+                }
+                editedUser.photoUrl?.let {
+                    this.photoUrl = it
+                    changed = true
+                }
+                if (changed) {
+                    this.updatedAt = DateTime.now()
+                }
             }
         }
     }

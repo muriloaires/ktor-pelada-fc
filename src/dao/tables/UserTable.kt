@@ -29,6 +29,7 @@ class UserRow(id: EntityID<Int>) : IntEntity(id) {
     var isAdvertiser by Users.isAdvertiser
     var photoUrl by Users.photoUrl
     val establishments by EstablishmentRow referrersOn Establishments.user
+    val reservations by CourtReservationRow referrersOn CourtReservations.user
 }
 
 enum class LoginType(val value: String) {

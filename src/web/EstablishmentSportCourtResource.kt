@@ -5,13 +5,17 @@ import dao.tables.toSportCourt
 import io.ktor.application.call
 import io.ktor.auth.authenticate
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.content.PartData
+import io.ktor.http.content.forEachPart
 import io.ktor.request.receive
+import io.ktor.request.receiveMultipart
 import io.ktor.response.respond
 import io.ktor.routing.*
 import util.extensions.toErrorResponse
 import web.model.incoming.EditEstablishmentCourt
 import web.model.incoming.NewEstablishmentCourt
 import web.model.outgoing.ErrorResponse
+import web.request.MultipartHandler
 
 fun Route.establishmentSportCourt(establishmentCourtsDAO: EstablishmentCourtsDAO) {
 
@@ -39,21 +43,37 @@ fun Route.establishmentSportCourt(establishmentCourtsDAO: EstablishmentCourtsDAO
              */
             post {
                 val establishmentId = call.parameters["establishmentId"]
-                val newCourt = call.receive<NewEstablishmentCourt>()
-                establishmentId?.let {
-                    try {
-                        val sportCourt = establishmentCourtsDAO.createCourt(establishmentId.toInt(), newCourt)
-                        sportCourt?.let {
-                            call.respond(HttpStatusCode.Created, sportCourt.toSportCourt())
-                        } ?: run {
-                            call.respond(HttpStatusCode.NotFound)
+                try {
+
+                    establishmentId?.let {
+                        val multipart = call.receiveMultipart()
+                        var photoFile: String? = null
+                        var newCourtBody: NewEstablishmentCourt? = null
+
+                        multipart.forEachPart { part ->
+                            if (part is PartData.FormItem) {
+                                newCourtBody = MultipartHandler.getFormItem(part, NewEstablishmentCourt::class.java)
+                            } else if (part is PartData.FileItem) {
+                                photoFile = MultipartHandler.saveMultipartFile(part)
+                            }
                         }
-                    } catch (e: IllegalArgumentException) {
-                        call.respond(HttpStatusCode.BadRequest, e.toErrorResponse())
+
+                        photoFile?.let { newCourtBody?.courtPhotoUrl = it }
+
+                        newCourtBody?.let {
+                            establishmentCourtsDAO.createCourt(establishmentId.toInt(), it)?.let { sportCourtRow ->
+                                call.respond(HttpStatusCode.Created, sportCourtRow.toSportCourt())
+                            } ?: run {
+                                call.respond(HttpStatusCode.NotFound)
+                            }
+                        }
+
+                    } ?: run {
+                        call.respond(HttpStatusCode.BadRequest, ErrorResponse("establishmentId parameter is required"))
                     }
 
-                } ?: run {
-                    call.respond(HttpStatusCode.BadRequest, ErrorResponse("Missing establishmentId parameter"))
+                } catch (e: IllegalArgumentException) {
+                    call.respond(HttpStatusCode.BadRequest, e.toErrorResponse())
                 }
             }
         }
@@ -65,16 +85,29 @@ fun Route.establishmentSportCourt(establishmentCourtsDAO: EstablishmentCourtsDAO
             patch {
                 val courtId = call.parameters["courtId"]
                 courtId?.let {
-                    val editedCourtBody = call.receive<EditEstablishmentCourt>()
-                    val editedCourt =
-                        establishmentCourtsDAO.updateCourt(courtId.toInt(), editedCourtBody)
-                    editedCourt?.let {
-                        call.respond(HttpStatusCode.Created, editedCourt.toSportCourt())
+                    val multiPart = call.receiveMultipart()
+                    var photoFile: String? = null
+                    var editedCourtBody: EditEstablishmentCourt? = null
+                    multiPart.forEachPart { part ->
+                        if (part is PartData.FormItem) {
+                            editedCourtBody = MultipartHandler.getFormItem(part, EditEstablishmentCourt::class.java)
+                        } else if (part is PartData.FileItem) {
+                            photoFile = MultipartHandler.saveMultipartFile(part)
+                        }
+                    }
+                    photoFile?.let { editedCourtBody?.courtPhotoUrl = it }
+                    editedCourtBody?.let {
+                        establishmentCourtsDAO.updateCourt(courtId.toInt(), it)?.let { sportCourtRow ->
+                            call.respond(HttpStatusCode.Created, sportCourtRow.toSportCourt())
+                        } ?: run {
+                            call.respond(HttpStatusCode.NotFound)
+                        }
                     } ?: run {
                         call.respond(HttpStatusCode.NotFound)
                     }
+
                 } ?: run {
-                    call.respond(HttpStatusCode.BadRequest, ErrorResponse("Missing courtId parameter"))
+                    call.respond(HttpStatusCode.BadRequest, ErrorResponse("courtId parameter is required"))
                 }
             }
 
@@ -84,7 +117,7 @@ fun Route.establishmentSportCourt(establishmentCourtsDAO: EstablishmentCourtsDAO
             delete {
                 val courtId = call.parameters["courtId"]
                 courtId?.let {
-                    val deleted = establishmentCourtsDAO.deleteCourt( courtId.toInt())
+                    val deleted = establishmentCourtsDAO.deleteCourt(courtId.toInt())
                     call.respond(if (deleted) HttpStatusCode.OK else HttpStatusCode.NotFound)
                 } ?: run {
                     call.respond(HttpStatusCode.BadRequest, ErrorResponse("Missing courtId parameter"))

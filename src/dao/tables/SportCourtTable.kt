@@ -1,6 +1,7 @@
 package dao.tables
 
 import dao.base.BaseIntIdTable
+import dao.tables.UserRow.Companion.referrersOn
 import model.SportCourt
 import org.jetbrains.exposed.dao.EntityID
 import org.jetbrains.exposed.dao.IntEntity
@@ -25,6 +26,7 @@ class SportCourtRow(id: EntityID<Int>) : IntEntity(id) {
     var isAvailable by SportCourts.isAvailable
     var establishment by EstablishmentRow referencedOn SportCourts.establishment
     var sports by SportRow via CourtSportsRelation
+    val reservations by CourtReservationRow referrersOn CourtReservations.sportCourt
 }
 
 fun SportCourtRow.toSportCourt() = SportCourt(

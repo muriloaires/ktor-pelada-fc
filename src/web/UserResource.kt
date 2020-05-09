@@ -1,6 +1,5 @@
 package web
 
-import com.google.gson.Gson
 import config.JwtConfig
 import dao.UserDAO
 import dao.tables.LoginType
@@ -10,26 +9,19 @@ import io.ktor.auth.authenticate
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.PartData
 import io.ktor.http.content.forEachPart
-import io.ktor.http.content.streamProvider
-import io.ktor.request.receive
 import io.ktor.request.receiveMultipart
 import io.ktor.response.respond
-import io.ktor.response.respondFile
 import io.ktor.routing.Route
 import io.ktor.routing.get
 import io.ktor.routing.patch
 import io.ktor.routing.post
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import kotlinx.coroutines.yield
 import model.User
 import util.extensions.toErrorResponse
 import util.user
+import web.model.incoming.EditedUser
 import web.model.incoming.NewUser
 import web.model.outgoing.ErrorResponse
 import web.request.MultipartHandler
-import java.io.*
 
 fun Route.user(userSource: UserDAO) {
 
@@ -37,7 +29,7 @@ fun Route.user(userSource: UserDAO) {
         var user: User? = null
         try {
             val multiPart = call.receiveMultipart()
-            var photoFile: String? = ""
+            var photoFile: String? = null
 
             multiPart.forEachPart { part ->
                 if (part is PartData.FormItem) {
@@ -82,45 +74,30 @@ fun Route.user(userSource: UserDAO) {
 
     authenticate {
 
-        /**
-         * Rota para update de username
-         */
-        patch("/users/username") {
-            call.user?.let {
-                val newUser = call.receive<NewUser>()
-                try {
-                    if (newUser.username == it.username || userSource.findByUsername(newUser.username) != null) {
-                        call.respond(HttpStatusCode.BadRequest, "Username já cadastrado")
-                    } else {
-                        call.respond(HttpStatusCode.OK, userSource.updateUsername(it.id, newUser.username)!!)
+        patch("/users") {
+            val multiPart = call.receiveMultipart()
+            var photoFile: String? = null
+            var editedUserBody: EditedUser? = null
+            try {
+                multiPart.forEachPart { part ->
+                    if (part is PartData.FormItem) {
+                        editedUserBody = MultipartHandler.getFormItem(part, EditedUser::class.java)
+                    } else if (part is PartData.FileItem) {
+                        photoFile = MultipartHandler.saveMultipartFile(part)
                     }
-                } catch (e: IllegalArgumentException) {
-                    call.respond(HttpStatusCode.BadGateway, e.toErrorResponse())
+                    part.dispose
                 }
-            }
-        }
-
-        /**
-         * Rota para update de email
-         */
-        patch("/users/email") {
-            call.user?.let {
-                try {
-                    val newUser = call.receive<NewUser>()
-                    if (newUser.email == it.email || userSource.findByEmail(newUser.email) != null) {
-                        call.respond(HttpStatusCode.BadRequest, "Email já cadastrado")
-                    } else {
-                        call.respond(HttpStatusCode.OK, userSource.updateEmail(it.id, newUser.email)!!)
+                editedUserBody?.let { editedUser ->
+                    photoFile?.let { editedUser.photoUrl = it }
+                    userSource.updateUser(call.user!!.id, editedUser).toUser().apply {
+                        call.respond(HttpStatusCode.OK, this)
                     }
-                } catch (e: IllegalArgumentException) {
-                    call.respond(HttpStatusCode.BadRequest, e.toErrorResponse())
+                } ?: run {
+                    call.respond(HttpStatusCode.BadRequest, ErrorResponse("Body not found"))
                 }
+            } catch (e: IllegalArgumentException) {
+                call.respond(HttpStatusCode.BadRequest, e.toErrorResponse())
             }
-        }
-
-        get("/image/{imageName}") {
-            val imageName = call.parameters["imageName"]
-            call.respondFile(File("C:\\ktor\\uploads\\$imageName"))
         }
 
     }

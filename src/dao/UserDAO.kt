@@ -1,6 +1,7 @@
 package dao
 
 import dao.tables.UserRow
+import web.model.incoming.EditedUser
 import web.model.incoming.NewUser
 
 interface UserDAO {
@@ -21,14 +22,12 @@ interface UserDAO {
 
     suspend fun findUserBySocialNetwork(email: String, loginType: String): UserRow?
 
-    suspend fun updateUsername(userId: Int, newUsername: String): UserRow?
-
-    suspend fun updateEmail(userId: Int, newEmail: String): UserRow?
-
     suspend fun addUser(user: NewUser): UserRow
 
     suspend fun deleteUser(id: Int): Boolean
 
     suspend fun findByUsername(username: String): UserRow?
+
+    suspend fun updateUser(userId: Int, editedUser: EditedUser): UserRow
 
 }

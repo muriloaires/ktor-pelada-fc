@@ -34,6 +34,11 @@ data class NewUser(
             }
             return _password
         }
-
-
 }
+
+data class EditedUser(
+    val name: String?,
+    val username: String?,
+    val email: String?,
+    var photoUrl: String?
+)
